@@ -1,0 +1,6 @@
+NetIDs ['divij3', 'lgetter2', 'rjunaid2', 'seanmk2'] with seed 237879371724955854448207014936885343769
+Downloading readme: 0.00B [00:00, ?B/s]Downloading readme: 6.52kB [00:00, 16.6MB/s]
+Downloading data:   0%|          | 0.00/83.9k [00:00<?, ?B/s]Downloading data: 100%|██████████| 83.9k/83.9k [00:00<00:00, 697kB/s]Downloading data: 100%|██████████| 83.9k/83.9k [00:00<00:00, 693kB/s]
+Generating test split:   0%|          | 0/164 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 164/164 [00:00<00:00, 3655.92 examples/s]
+Entire Dataset saved to humaneval.jsonl
+Selected 20 problems saved to selected_humaneval_237879371724955854448207014936885343769.jsonl
