@@ -69,8 +69,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-base", q
             elif code_lines:  # already started capturing
                 code_lines.append(line)
         response_processed = "\n".join(code_lines).strip()
-        
-        response_processed = ""
+
         results_processed.append(dict(task_id=case["task_id"], completion=response_processed))
     return results, results_processed
 
