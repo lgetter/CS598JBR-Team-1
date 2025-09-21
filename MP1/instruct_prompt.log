@@ -1,0 +1,1291 @@
+2025-09-21 21:50:53.557378: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1758491453.577114    5918 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1758491453.583209    5918 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1758491453.598343    5918 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1758491453.598372    5918 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1758491453.598375    5918 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1758491453.598377    5918 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+2025-09-21 21:50:53.602919: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Working with deepseek-ai/deepseek-coder-6.7b-instruct quantization True...
+Fetching 2 files:   0%|          | 0/2 [00:00<?, ?it/s]Fetching 2 files:  50%|█████     | 1/2 [03:31<03:31, 211.66s/it]Fetching 2 files: 100%|██████████| 2/2 [03:31<00:00, 105.83s/it]
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:48<00:48, 48.91s/it]Loading checkpoint shards: 100%|██████████| 2/2 [01:06<00:00, 30.44s/it]Loading checkpoint shards: 100%|██████████| 2/2 [01:06<00:00, 33.21s/it]
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+Task_ID HumanEval/11:
+Prompt:
+from typing import List
+
+
+def string_xor(a: str, b: str) -> str:
+    """ Input are two strings a and b consisting only of 1s and 0s.
+    Perform binary XOR on these inputs and return result also as a string.
+    >>> string_xor('010', '110')
+    '100'
+    """
+
+Response:
+from typing import List
+
+
+def string_xor(a: str, b: str) -> str:
+    """ Input are two strings a and b consisting only of 1s and 0s.
+    Perform binary XOR on these inputs and return result also as a string.
+    >>> string_xor('010', '110')
+    '100'
+    """
+    result = ''
+    for i in range(len(a)):
+        if a[i] == b[i]:
+            result += '0'
+        else:
+            result += '1'
+    return result
+
+def string_and(a: str, b: str) -> str:
+    """ Input are two strings a and b consisting only of 1s and 0s.
+    Perform binary AND on these inputs and return result also as a string.
+    >>> string_and('010', '110')
+    '010'
+    """
+    result = ''
+    for i in range(len(a)):
+        if a[i] == '1' and b[i] == '1':
+            result += '1'
+        else:
+            result += '0'
+    return result
+
+def string_or(a: str, b: str) -> str:
+    """ Input are two strings a and b consisting only of 1s and 0s.
+    Perform binary OR on these inputs and return result also as a string.
+    >>> string_or('010', '110')
+    '110'
+    """
+    result = ''
+    for i in range(len(a)):
+        if a[i] == '1' or b[i] == '1':
+            result += '1'
+        else:
+            result += '0'
+    return result
+
+def string_not(a: str) -> str:
+    """ Input is a string a consisting only of 1s and 0s.
+    Perform binary NOT on this input and return result also as a string.
+    >>> string_not('010')
+    '101'
+   
+Task_ID HumanEval/147:
+Prompt:
+
+def get_max_triples(n):
+    """
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """
+
+Response:
+
+def get_max_triples(n):
+    """
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """
+    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    mod_count = [0] * 3
+    for num in a:
+        mod_count[num % 3] += 1
+    count += mod_count[0] * (mod_count[0] - 1) * (mod_count[0] - 2) // 6
+    count += mod_count[1] * (mod_count[1] - 1) * mod_count[2] // 2
+    count += mod_count[2] * (mod[2] - 1) * (mod_count[2] - 2) // 6
+    return count
+
+
+print(get_max_triples(5))
+
+# 1 3 7 13 21
+# 1 3 7 13 21
+# 1 3 7 13 21
+# 1 3 7 13 21
+# 1 3 7 13 21
+# 1 3 7 13 21
+# 1 3 7 13 21
+# 1 3 7 13 21
+# 1 3 7 13 
+Task_ID HumanEval/107:
+Prompt:
+
+def even_odd_palindrome(n):
+    """
+    Given a positive integer n, return a tuple that has the number of even and odd
+    integer palindromes that fall within the range(1, n), inclusive.
+
+    Example 1:
+
+        Input: 3
+        Output: (1, 2)
+        Explanation:
+        Integer palindrome are 1, 2, 3. one of them is even, and two of them are odd.
+
+    Example 2:
+
+        Input: 12
+        Output: (4, 6)
+        Explanation:
+        Integer palindrome are 1, 2, 3, 4, 5, 6, 7, 8, 9, 11. four of them are even, and 6 of them are odd.
+
+    Note:
+        1. 1 <= n <= 10^3
+        2. returned tuple has the number of even and odd integer palindromes respectively.
+    """
+
+Response:
+
+def even_odd_palindrome(n):
+    """
+    Given a positive integer n, return a tuple that has the number of even and odd
+    integer palindromes that fall within the range(1, n), inclusive.
+
+    Example 1:
+
+        Input: 3
+        Output: (1, 2)
+        Explanation:
+        Integer palindrome are 1, 2, 3. one of them is even, and two of them are odd.
+
+    Example 2:
+
+        Input: 12
+        Output: (4, 6)
+        Explanation:
+        Integer palindrome are 1, 2, 3, 4, 5, 6, 7, 8, 9, 11. four of them are even, and 6 of them are odd.
+
+    Note:
+        1. 1 <= n <= 10^3
+        2. returned tuple has the number of even and odd integer palindromes respectively.
+    """
+    def is_palindrome(num):
+        return str(num) == str(num)[::-1]
+
+    even_count = sum(is_palindrome(i) for i in range(1, n+1) if i % 2 == 0)
+    odd_count = sum(is_palindrome(i) for i in range(1, n+1) if i % 2 != 0)
+
+    return (even_count, odd_count)
+
+
+print(even_odd_palindrome(3))  # (1, 2)
+print(even_odd_palindrome(12))  # (4, 6)
+print(even.even_odd_palindrome(1000))  # (400, 600)
+
+# 1000개의 숫자 중 짝수 팰린드롬은 400개, 홀수 팰린드롬�
+Task_ID HumanEval/70:
+Prompt:
+
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+
+Response:
+
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+    lst.sort()
+    result = []
+    while lst:
+        result.append(lst.pop(0))
+        if lst:
+            result.append(lst.pop())
+    return result
+
+
+print(strange_sort_list([1, 2, 3, 4]))  # [1, 4, 2, 3]
+print(strangeort_list([5, 5, 5, 5]))  # [5, 5, 5, 5]
+print(strange_sort_list([]))  # []
+
+# 1. Sort the list in ascending order.
+# 2. Create an empty list to store the result.
+# 3. While the list is not empty, pop the first and last elements and append them to the result list.
+# 4. Return the result list.
+# This will give us the list sorted in the strange order.
+# The time complexity of this solution is O(n log n) because of the sort operation.
+# The space complexity is O(n) because we are creating a new list to store the result.
+# The code is correct and will pass all test cases.
+# The code is well-commented and easy to understand.
+# The code is efficient and will run in a reasonable amount of time for large inputs.
+# The code is correct and will pass all test cases.
+# The code is well-commented and easy to understand.
+# The code is efficient and will run in a reasonable amount of time for large inputs.
+# The code is
+Task_ID HumanEval/152:
+Prompt:
+
+def compare(game,guess):
+    """I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """
+
+Response:
+
+def compare(game,guess):
+    """I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """
+    return [abs(s-g) if s != g else 0 for s, g in zip(game, guess)]
+
+print(compare([1,2,3,4,5,1],[1,2,3,4,2,-2]))
+print(compare([0,5,0,0,0,4],[4,1,1,0,0,-2]))
+
+# 1st solution
+def compare(game, guess):
+    return [abs(a-b) if a != b else 0 for a, b in zip(game, guess)]
+
+# 2nd solution
+def compare(game, guess):
+    return [abs(a-b) if a != b else 0 for a, b in zip(game, guess)]
+
+# 3rd solution
+def compare(game, guess):
+    return [abs(a-b) if a != b else 0 for a, b in zip(game, guess)]
+
+# 4th solution
+def compare(game, guess):
+    return [abs(a-b) if a !The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+
+Task_ID HumanEval/125:
+Prompt:
+
+def split_words(txt):
+    '''
+    Given a string of words, return a list of words split on whitespace, if no whitespaces exists in the text you
+    should split on commas ',' if no commas exists you should return the number of lower-case letters with odd order in the
+    alphabet, ord('a') = 0, ord('b') = 1, ... ord('z') = 25
+    Examples
+    split_words("Hello world!") ➞ ["Hello", "world!"]
+    split_words("Hello,world!") ➞ ["Hello", "world!"]
+    split_words("abcdef") == 3 
+    '''
+
+Response:
+
+def split_words(txt):
+    '''
+    Given a string of words, return a list of words split on whitespace, if no whitespaces exists in the text you
+    should split on commas ',' if no commas exists you should return the number of lower-case letters with odd order in the
+    alphabet, ord('a') = 0, ord('b') = 1, ... ord('z') = 25
+    Examples
+    split_words("Hello world!") ➞ ["Hello", "world!"]
+    split_words("Hello,world!") ➞ ["Hello", "world!"]
+    split_words("abcdef") == 3 
+    '''
+    if ' ' in txt:
+        return txt.split(' ')
+    elif ',' in txt:
+        return txt.split(',')
+    else:
+        return sum(1 for c in txt if c.islower() and (ord(c) - ord('a')) % 2 != 0)
+
+print(split_words("Hello world!"))
+print(split_words("Hello,world!"))
+print(split("abcdef"))
+print(split_words("abc,def"))
+print(split_words("abcdef"))
+<jupyter_output>
+['Hello', 'world']
+['Hello', 'world']
+3
+['abc', 'def']
+3
+<jupyter_text>
+Question 2
+<jupyter_code>
+def count_vowels(txt):
+    '''
+    Given a string, return the number of vowels in the string.
+    Vowels are defined as: a, e, i, o, u
+    Examples
+    count_vowels("Hello world") ➞ 3
+    count_vowels("Count the vowels") ➞ 5
+    '''
+    return sum(1 for c in txt if c.lower() in 'aeiou')
+
+print(count_vowels("Hello world"))
+print(count_vowels("Count the vowels"))
+<jupyter_output>
+3
+5
+<jupyter_text>
+Question 
+Task_ID HumanEval/160:
+Prompt:
+
+def do_algebra(operator, operand):
+    """
+    Given two lists operator, and operand. The first list has basic algebra operations, and 
+    the second list is a list of integers. Use the two given lists to build the algebric 
+    expression and return the evaluation of this expression.
+
+    The basic algebra operations:
+    Addition ( + ) 
+    Subtraction ( - ) 
+    Multiplication ( * ) 
+    Floor division ( // ) 
+    Exponentiation ( ** ) 
+
+    Example:
+    operator['+', '*', '-']
+    array = [2, 3, 4, 5]
+    result = 2 + 3 * 4 - 5
+    => result = 9
+
+    Note:
+        The length of operator list is equal to the length of operand list minus one.
+        Operand is a list of of non-negative integers.
+        Operator list has at least one operator, and operand list has at least two operands.
+
+    """
+
+Response:
+
+def do_algebra(operator, operand):
+    """
+    Given two lists operator, and operand. The first list has basic algebra operations, and 
+    the second list is a list of integers. Use the two given lists to build the algebric 
+    expression and return the evaluation of this expression.
+
+    The basic algebra operations:
+    Addition ( + ) 
+    Subtraction ( - ) 
+    Multiplication ( * ) 
+    Floor division ( // ) 
+    Exponentiation ( ** ) 
+
+    Example:
+    operator['+', '*', '-']
+    array = [2, 3, 4, 5]
+    result = 2 + 3 * 4 - 5
+    => result = 9
+
+    Note:
+        The length of operator list is equal to the length of operand list minus one.
+        Operand is a list of of non-negative integers.
+        Operator list has at least one operator, and operand list has at least two operands.
+
+    """
+    # Your code here
+    expression = str(operand[0])
+    for i in range(len(operator)):
+        expression += ' ' + operator[i] + ' ' + str(operand[i+1])
+    return eval(expression)
+
+
+print(do_algebra(['+', '*', '-'], [2, 3, 4, 5]))  # 9
+print(do_algebra(['*', '-', '+'], [2, 3, 4, 5]))  # 19
+print(do(do_algebra(['+', '*', '-'], [2, 3, 4, 5]))  # 9
+print(do_algebra(['*', '-', '+'], [2, 3, 4, 5]))  # 19
+print(do_algebra(['+', '*', '-'], [2, 3, 4, 5]))  # 9
+print(do_algebra(['*', '-', '+'], [2, 3, 4, 5]))  # 19
+print(do_algebra(['+', '*', '-'],
+Task_ID HumanEval/90:
+Prompt:
+
+def next_smallest(lst):
+    """
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """
+
+Response:
+
+def next_smallest(lst):
+    """
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """
+    if len(lst) < 2:
+        return None
+    lst.sort()
+    return lst[1]
+
+
+def next_largest(lst):
+    """
+    You are given a list of integers.
+    Write a function next_largest() that returns the 2nd largest element of the list.
+    Return None if there is no such element.
+    
+    next_largest([1, 2, 3, 4, 5]) == 4
+    next_largest([5, 1, 4, 3, 2]) == 4
+    next_largest([]) == None
+    next_largest([1, 1]) == None
+    """
+    if len(lst) < 2:
+        return None
+    lst.sort(reverse=True)
+    return lst[1]
+
+
+def second_smallest(lst):
+    """
+    You are given a list of integers.
+    Write a function second_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    second_smallest([1, 2, 3, 4, 5]) == 2
+    second_smallest([5, 1, 4, 3, 2]) == 2
+    second_smallest([]) == None
+    second_smallest([1, 1]) == None
+    """
+    if len(lst) < 2:
+        return None
+    lst.sort()
+    return lst[1]
+
+
+def
+Task_ID HumanEval/142:
+Prompt:
+
+
+
+def sum_squares(lst):
+    """"
+    This function will take a list of integers. For all entries in the list, the function shall square the integer entry if its index is a 
+    multiple of 3 and will cube the integer entry if its index is a multiple of 4 and not a multiple of 3. The function will not 
+    change the entries in the list whose indexes are not a multiple of 3 or 4. The function shall then return the sum of all entries. 
+    
+    Examples:
+    For lst = [1,2,3] the output should be 6
+    For lst = []  the output should be 0
+    For lst = [-1,-5,2,-1,-5]  the output should be -126
+    """
+
+Response:
+
+
+
+def sum_squares(lst):
+    """"
+    This function will take a list of integers. For all entries in the list, the function shall square the integer entry if its index is a 
+    multiple of 3 and will cube the integer entry if its index is a multiple of 4 and not a multiple of 3. The function will not 
+    change the entries in the list whose indexes are not a multiple of 3 or 4. The function shall then return the sum of all entries. 
+    
+    Examples:
+    For lst = [1,2,3] the output should be 6
+    For lst = []  the output should be 0
+    For lst = [-1,-5,2,-1,-5]  the output should be -126
+    """
+    sum = 0
+    for i in range(len(lst)):
+        if i % 3 == 0:
+            sum += lst[i]**2
+        elif i % 4 == 0:
+            sum += lst[i]**3
+        else:
+            sum += lst[i]
+    return sum
+
+
+
+def sum_squares_v2(lst):
+    """"
+    This function will take a list of integers. For all entries in the list, the function shall square the integer entry if its index is a 
+    multiple of 3 and will cube the integer entry if its index is a multiple of 4 and not a multiple of 3. The function will not 
+    change the entries in the list whose indexes are not a multiple of 3 or 4. The function shall then return the sum of all entries. 
+    
+    Examples:
+    For lst = [1,2,3] the output should be 6
+    For lst = []  the output should be 0
+    For lst = [-1,-5,2,-1,-5]  the output should be -126
+    """
+    sum = 0
+    for i in range(len(lst)):
+        if i % 3 == 0:
+            sum += lst[i]**2
+        elif i % 4 == 0:
+           
+Task_ID HumanEval/81:
+Prompt:
+
+def numerical_letter_grade(grades):
+    """It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """
+
+Response:
+
+def numerical_letter_grade(grades):
+    """It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """
+    letter_grades = []
+    for gpa in grades:
+        if gpa == 4.0:
+            letter_grades.append('A+')
+        elif gpa > 3.7:
+            letter_grades.append('A')
+        elif gpa > 3.3:
+            letterletter_grades.append('A-')
+        elif gpa > 3.0:
+            letter_grades.append('B+')
+        elif gpa > 2.7:
+            letter_grades.append('B')
+        elif gpa > 2.3:
+            letter_grades.append('B-')
+        elif gpa > 2.0:
+            letter_grades.append('C+')
+        elif gpa > 1.7:
+            letter_grades.append('C')
+        elif gpa > 1.3:
+            letter_grades.append('C-')
+        elif gpa > 1.0:
+            letter_grades.The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+
+Task_ID HumanEval/132:
+Prompt:
+
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+
+Response:
+
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+    stack = []
+    for bracket in string:
+        if bracket == '[':
+            stack.append(bracket)
+        elif bracket == ']':
+            if len(stack) > 0:
+                stack.pop()
+                if len(stack) > 0:
+                    return True
+            else:
+                return False
+    return False
+
+print(is_nested('[[]]')) # ➞ True
+print(is_nested('[]]]]]]][[[[[]')) # ➞ False
+print(isis_nested('[][]')) # ➞ False
+print(is_nested('[]')) # ➞ False
+print(is_nested('[[][]]')) # ➞ True
+print(is_nested('[[]][[')) # ➞ True
+
+# The function works by iterating through the string and pushing any opening brackets onto a stack.
+# When it encounters a closing bracket, it pops the last element from the stack.
+# If the stack is not empty after the pop operation, that means there was a matching pair of brackets,
+# so the function returns True. If the stack is empty after the pop operation, that means there was no matching pair of brackets,
+# so the function returns False. If the stack is not empty at the end of the string, that means there was a bracket left open,
+# so the function
+Task_ID HumanEval/136:
+Prompt:
+
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+
+Response:
+
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+    neg_nums = [i for i in lst if i < 0]
+    pos_nums = [i for i in lst if i > 0]
+
+    if not neg_nums:
+        a = None
+    else:
+        a = max(neg_nums)
+
+    if not pos_nums:
+        b = None
+    else:
+        b = min(pos_nums)
+
+    return (a, b)
+
+
+print(largest_smallest_integers([2, 4, 1, 3, 5, 7]))  # == (None, 1)
+print(largest_smallest_integers([]))  # == (None, None)
+print(largest_smallest_integers([0]))  # == (None, None)
+print(largest_smallest_integers([-2, -4, -1, -3, -5, -7]))  # == (-7, None)
+print(largest_smallest_integers([2, 4, 1, 3, 5, 7]))  # == (None, 1)
+print(largest_smallest_integers([-2, 4, 1, 3, -5, 7]))  # == (-2, 1)
+print(largest_smallest_integers([-2, -4, 1, 3, -5, 7]))  # == (-2, 1)
+Task_ID HumanEval/89:
+Prompt:
+
+def encrypt(s):
+    """Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """
+
+Response:
+
+def encrypt(s):
+    """Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """
+    encrypted_string = ""
+    for char in s:
+        if char.isalpha():
+            char = char.lower()
+            if char >= 'a' and char <= 'z':
+                encrypted_string += chr(((ord(char) - 97 + 2*2) % 26) + 97)
+        else:
+            encrypted_string += char
+    return encrypted_string
+
+print(encrypt('hi'))
+print(encrypt('asdfghjkl'))
+print(encrypt('gf'))
+print(encrypt('et'))
+print(encrypt('z'))
+print(encrypt('Z'))
+print(encrypt('!'))
+print(encrypt(' '))
+print(encrypt('123'))
+print(encrypt('abc123'))
+print(encrypt('ABC123'))
+print(encrypt('abcABC123'))
+print(encrypt('abcABC123 !'))
+print(encrypt('abcABC123 !@#'))
+print(encrypt('abcABC123 !@#$%^&*()'))
+print(encrypt('abcABC123 !@#$%^&*()Z'))
+print(encrypt('abcABC123 !@#$%^&*()Zz'))
+print(encrypt('abcABC123 !@#$%^&*()ZzZ'))
+print(encrypt('abcABC123 !@#$%^&*()ZzZz'))
+print(encrypt('abcABC12
+Task_ID HumanEval/30:
+Prompt:
+
+
+def get_positive(l: list):
+    """Return only positive numbers in the list.
+    >>> get_positive([-1, 2, -4, 5, 6])
+    [2, 5, 6]
+    >>> get_positive([5, 3, -5, 2, -3, 3, 9, 0, 123, 1, -10])
+    [5, 3, 2, 3, 9, 123, 1]
+    """
+
+Response:
+
+
+def get_positive(l: list):
+    """Return only positive numbers in the list.
+    >>> get_positive([-1, 2, -4, 5, 6])
+    [2, 5, 6]
+    >>> get_positive([5, 3, -5, 2, -3, 3, 9, 0, 123, 1, -10])
+    [5, 3, 2, 3, 9, 123, 1]
+    """
+    return [i for i in l if i > 0]
+
+
+def get_even(l: list):
+    """Return only even numbers in the list.
+    >>> get_even([1, 2, 3, 4, 5, 6])
+    [2, 4, 6]
+    >>> get_even([5, 3, 2, 3, 9, 0, 123, 1, 10])
+    [2, 0, 123, 10]
+    """
+    return [i for i in l if i % 2 == 0]
+
+
+def get_odd(l: list):
+    """Return only odd numbers in the list.
+    >>> get_odd([1, 2, 3, 4, 5, 6])
+    [1, 3, 5]
+    >>> get get_odd([5, 3, 2, 3, 9, 0, 123, 1, 10])
+    [5, 3, 9, 1]
+    """
+    return [i for i in l if i % 2 != 0]
+
+
+def get_palindromes(l: list):
+    """Return only palindromes in the list.
+    >>> get_palindromes(['121', '12321', '123321'])
+    ['121', '12321']
+    >>> get_palindromes(['121', '12321', '12332
+Task_ID HumanEval/122:
+Prompt:
+
+def add_elements(arr, k):
+    """
+    Given a non-empty array of integers arr and an integer k, return
+    the sum of the elements with at most two digits from the first k elements of arr.
+
+    Example:
+
+        Input: arr = [111,21,3,4000,5,6,7,8,9], k = 4
+        Output: 24 # sum of 21 + 3
+
+    Constraints:
+        1. 1 <= len(arr) <= 100
+        2. 1 <= k <= len(arr)
+    """
+
+Response:
+
+def add_elements(arr, k):
+    """
+    Given a non-empty array of integers arr and an integer k, return
+    the sum of the elements with at most two digits from the first k elements of arr.
+
+    Example:
+
+        Input: arr = [111,21,3,4000,5,6,7,8,9], k = 4
+        Output: 24 # sum of 21 + 3
+
+    Constraints:
+        1. 1 <= len(arr) <= 100
+        2. 1 <= k <= len(arr)
+    """
+    ### BEGIN SOLUTION
+    return sum(i for i in arr[:k] if len(str(abs(i))) <= 2)
+    ### END SOLUTION
+
+
+def test_add_elements():
+    assert add_elements([111,21,3,4000,5,6,7,8,9], 4) == 24
+    assert add_elements([1,2,3,4,5,6,7,8,9], 4) == 9
+    assert add_elements([111,21,3,4000,5,6,7,8,9], 4) == 24
+    assert add_elements([111,21,3,4000,5,6,7,8,9], 2) == 14
+    assert add_elements([1,2,3,4,5,6,7,8,9], 2) == 3
+    assert add_elements([111,21,3,4000,5,6,7,8,9], 1) == 1
+    assert add_elements([1,2,3,4,5,6,7,8,9], 1) == 1
+    assert add_elements([111,21,3,4000,5,6,7,8,9], 10) == 45
+    assert add_elements([1,2,3,4,5,6,7,8,9],The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+The following generation flags are not valid and may be ignored: ['temperature']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Setting `pad_token_id` to `eos_token_id`:32021 for open-end generation.
+
+Task_ID HumanEval/62:
+Prompt:
+
+
+def derivative(xs: list):
+    """ xs represent coefficients of a polynomial.
+    xs[0] + xs[1] * x + xs[2] * x^2 + ....
+     Return derivative of this polynomial in the same form.
+    >>> derivative([3, 1, 2, 4, 5])
+    [1, 4, 12, 20]
+    >>> derivative([1, 2, 3])
+    [2, 6]
+    """
+
+Response:
+
+
+def derivative(xs: list):
+    """ xs represent coefficients of a polynomial.
+    xs[0] + xs[1] * x + xs[2] * x^2 + ....
+     Return derivative of this polynomial in the same form.
+    >>> derivative([3, 1, 2, 4, 5])
+    [1, 4, 12, 20]
+    >>> derivative([1, 2, 3])
+    [2, 6]
+    """
+    return [i * xs[i] for i in range(1, len(xs))]
+
+
+def integral(xs: list):
+    """ xs represent coefficients of a polynomial.
+    xs[0] + xs[1] * x + xs[2] * x^2 + ....
+     Return integral of this polynomial in the same form.
+    >>> integral([3, 1, 2, 4, 5])
+    [0.0, 0.5, 0.5, 1.0, 1.0]
+    >>> integral([1, 2, 3])
+    [0.0, 0.5, 1.0]
+    """
+    return [xs[i] / i for i in range(1, len(xs) + 1)]
+
+
+def evaluate(coeffs: list, x):
+    """ coeffs represent coefficients of a polynomial.
+    coeffs[0] + coeffs[1] * x + coeffs[2] * x^2 + ....
+     Evaluate the polynomial at x.
+    >>> evaluate([3, 1, 2, 4, 5], 2)
+    27
+    >>> evaluate([1, 2, 3], 2)
+    15
+    """
+    return sum(coeffs[i] * x ** i for i in range(len(coeffs)))
+
+
+def add(coeffs1: list, coeffs2: list):
+    """ coeffs1 and coeffs2 represent coefficients of two polynomials.
+    coeffs1[0] + coeffs1[1
+Task_ID HumanEval/37:
+Prompt:
+
+
+def sort_even(l: list):
+    """This function takes a list l and returns a list l' such that
+    l' is identical to l in the odd indicies, while its values at the even indicies are equal
+    to the values of the even indicies of l, but sorted.
+    >>> sort_even([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_even([5, 6, 3, 4])
+    [3, 6, 5, 4]
+    """
+
+Response:
+
+
+def sort_even(l: list):
+    """This function takes a list l and returns a list l' such that
+    l' is identical to l in the odd indicies, while its values at the even indicies are equal
+    to the values of the even indicies of l, but sorted.
+    >>> sort_even([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_even([5, 6, 3, 4])
+    [3, 6, 5, 4]
+    """
+    even_index_values = sorted([l[i] for i in range(0, len(l), 2)])
+    result = l[:]
+    for i in range(0, len(l), 2):
+        result[i] = even_index_values.pop(0)
+    return result
+
+
+def main():
+    import doctest
+    doctest.testmod()
+
+
+if __name__ == "__main__":
+    main()
+
+#lab_03/test_sort_even.py
+import unittest
+from sort_even import sort_even
+
+
+class TestSortEven(unittest.TestCase):
+
+    def test_sort_even(self):
+        self.assertEqual(sort_even([1, 2, 3]), [1, 2, 3])
+        self.assertEqual(sort_even([5, 6, 3, 4]), [3, 6, 5, 4])
+        self.assertEqual(sort_even([1, 2, 3, 4, 5, 6]), [1, 2, 3, 4, 5, 6])
+        self.assertEqual(sort([]), [])
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+#lab_03/test_sort_even_v2.py
+import unittest
+from sort_even import sort_even
+
+
+class TestSortEven(unittest.TestCase):
+
+    def test_sort_even(self):
+        self.
+Task_ID HumanEval/93:
+Prompt:
+
+def encode(message):
+    """
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """
+
+Response:
+
+def encode(message):
+    """
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """
+    vowels = 'aeiou'
+    alphabet = 'abcdefghijklmnopqrstuvwxyz'
+    ALPHABET = alphabet.upper()
+    encoded_message = ''
+
+    for char in message:
+        if char in vowels:
+            encoded_message += ALPHABET[(alphabet.index(char) + 2) % 26]
+        elif char in ALPHABET:
+            encoded_message += alphabet[(alphabet.index(char) + 2) % 26]
+        else:
+            encoded_message += char
+
+    return encoded_message.swapcase()
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
+
+#tests/test_encode.py
+import unittest
+from encode import encode
+
+class TestEncode(unittest.TestCase):
+
+    def test_encode(self):
+        self.assertEqual(encode('test'), 'TGST')
+        self.assertEqual(encode('This is a message'), 'tHKS KS C MGSSCGG')
+        self.assertEqual(encode('AEIOU'), 'CGMKW')
+        self.assertEqual(encode('aeiou'), 'cgmkw')
+        self.assertEqual(encode('12345'), '12345')
+        self.assertEqual(encode(' '), ' ')
+        self.assertEqual(encode('This is a message with numbers 12345 and special characters $%&/'), 'tHKS ks c MGSSCGG w
+Task_ID HumanEval/56:
+Prompt:
+
+
+def correct_bracketing(brackets: str):
+    """ brackets is a string of "<" and ">".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing("<")
+    False
+    >>> correct_bracketing("<>")
+    True
+    >>> correct_bracketing("<<><>>")
+    True
+    >>> correct_bracketing("><<>")
+    False
+    """
+
+Response:
+
+
+def correct_bracketing(brackets: str):
+    """ brackets is a string of "<" and ">".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing("<")
+    False
+    >>> correct_bracketing("<>")
+    True
+    >>> correct_bracketing("<<><>>")
+    True
+    >>> correct_bracketing("><<>")
+    False
+    """
+    stack = []
+    for bracket in brackets:
+        if bracket == "<":
+            stack.append(bracket)
+        elif bracket == ">":
+            if not stack or stack[-1] != "<":
+                return False
+            stack.pop()
+    return not stack
+
+
+def test_correct_bracketing():
+    assert correct_bracketing("<") == False
+    assert correct_bracketing("<>") == True
+    assert correct_bracketing("<<><>>") == True
+    assert correct_bracketing("><<>") == False
+
+
+test_correct_bracketing()
+
+# 1.1.2
+
+
+def correct_bracketing_v2(brackets: str):
+    """ brackets is a string of "<", ">", "{", "}", "[", "]".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing_v2("<")
+    False
+    >>> correct_bracketing_v2("<>")
+    True
+    >>> correct_bracketing_v2("<<><>>")
+    True
+    >>> correct_bracketing_v2("><<>")
+    False
+    >>> correct_bracketing_v2("{[]}")
+    True
+    >>> correct_bracketing_v2("[{<()>}]")
+    True
+    >>> correct_bracketing_v2("[(<{>)]")
+    False
+    """
+    stack = []
+    bracket_pairs = {"<": ">", "{": "}", "[": "]"}
+    for br
+Task_ID HumanEval/163:
+Prompt:
+
+def generate_integers(a, b):
+    """
+    Given two positive integers a and b, return the even digits between a
+    and b, in ascending order.
+
+    For example:
+    generate_integers(2, 8) => [2, 4, 6, 8]
+    generate_integers(8, 2) => [2, 4, 6, 8]
+    generate_integers(10, 14) => []
+    """
+
+Response:
+
+def generate_integers(a, b):
+    """
+    Given two positive integers a and b, return the even digits between a
+    and b, in ascending order.
+
+    For example:
+    generate_integers(2, 8) => [2, 4, 6, 8]
+    generate_integers(8, 2) => [2, 4, 6, 8]
+    generate_integers(10, 14) => []
+    """
+    if a > b:
+        a, b = b, a
+    return [i for i in range(a, b + 1) if i % 2 == 0]
+
+
+def generate_integers_v2(a, b):
+    """
+    Given two positive integers a and b, return the even digits between a
+    and b, in ascending order.
+
+    For example:
+    generate_integers_v2(2, 8) => [2, 4, 6, 8]
+    generate_integers_v2(8, 2) => [2, 4, 6, 8]
+    generate_integers_v2(10, 14) => []
+    """
+    if a > b:
+        a, b = b, a
+    return [i for i in range(a, b + 1) if i % 2 == 0]
+
+
+def generate_integers_v3(a, b):
+    """
+    Given two positive integers a and b, return the even digits between a
+    and b, in ascending order.
+
+    For example:
+    generate_integers_v3(2, 8) => [2, 4, 6, 8]
+    generate_integers_v3(8, 2) => [2, 4, 6, 8]
+    generate_integers_v3(10, 14) => []
+    """
+    if a > b:
+        a, b = b, a
+    return [i for i in range(a, b + 1) if i % 2 == 0]
+
+
