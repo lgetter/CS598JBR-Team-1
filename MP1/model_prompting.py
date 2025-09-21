@@ -63,11 +63,17 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-base", q
         # Trim everything before the function definition if model includes extra text
         response_lines = response.splitlines()
         code_lines = []
+        inside_func = False
+
         for line in response_lines:
-            if line.strip().startswith("def "):  # keep only function defs and after
+            if line.strip().startswith("def "):  
+                if inside_func:
+                    break
+                inside_func = True
                 code_lines.append(line)
-            elif code_lines:  # already started capturing
+            elif inside_func:  
                 code_lines.append(line)
+
         response_processed = "\n".join(code_lines).strip()
 
         results_processed.append(dict(task_id=case["task_id"], completion=response_processed))
