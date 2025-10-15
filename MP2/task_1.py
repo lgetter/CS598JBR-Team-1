@@ -19,7 +19,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
     # TODO: download the model
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
   
-    # TODO: load the model with quantization
+    # # TODO: load the model with quantization
     quant_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_compute_dtype=torch.float16,
@@ -40,12 +40,14 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
     for entry in dataset:
         all_tests = test_info[entry['task_id']]
         selected_test = all_tests.pop()
+        input = selected_test['input']
+        output = selected_test['output']
         # TODO: create prompt for the model
         # Tip : Use can use any data from the dataset to create 
         #       the prompt including prompt, canonical_solution, test, etc.
         if vanilla:
             prompt = (
-                "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company."
+                "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n"
                 "You only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
                 "and other non-computer science questions, you will refuse to answer.\n"
                 "### Instruction:\n"
@@ -55,14 +57,14 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 "### Response:\n")
         else:
             prompt = (
-                "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company."
+                "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n"
                 "You only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
                 "and other non-computer science questions, you will refuse to answer.\n"
                 "### Instruction:\n"
                 "You are provided with a function description, the implementation of this function, and a sample input.\n"
                 "Your task is to determine the expected output of the function when given the sample input.\n"
                 "Reason through the problem step by step to arrive at the correct output.\n"
-                "You must return the expected output of the provided function in enclosing [Output][/Output] tags as the final output.\n"
+                "You must return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n"
                 "For example, if the expected output is True, return [Output]True[/Output].\n"
                 "Reason step by step to solve the problem.\n"
                 "Function description:\n"
@@ -70,11 +72,11 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 "Function implementation:\n"
                 f"{entry['canonical_solution']}"
                 f"Sample input:\n"
-                f"{selected_test['input']}\n"
+                f"{input}\n"
                 "Here are some example inputs and their expected outputs:\n")
             
             for test in all_tests:
-                prompt += f"Input: {test['input']} => Expected Output: {test['output']}\n"
+                prompt += f"Input: {test['input']} => Expected Output: [Output]{test['output']}[/Output]\n"
 
         print(f"Prompt for Task_ID {entry['task_id']}:\n{prompt}")
         
@@ -90,15 +92,16 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         # TODO: process the response and save it to results
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-        print(f"Processed response for Task_ID {entry['task_id']}:\n[[[[{response}]]]]")
+        print(f"Processed response for Task_ID {entry['task_id']}:\n{response}")
+        print("========================================\n\n")
 
         response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
 
         verdict = False
-        if selected_test['output'] in response:
+        if output in response:
             verdict = True
         
-        print(f"\nExpected output:\n{selected_test['output']}\nIs correct: {verdict}\n")
+        print(f"\nExpected output:\n{output}\nIs correct: {verdict}\n")
         
         # print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
         results.append({
