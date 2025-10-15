@@ -38,13 +38,18 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         # TODO: create prompt for the model
         # Tip : Use can use any data from the dataset to create 
         #       the prompt including prompt, canonical_solution, test, etc.
-        prompt = """You are an AI programming assistant. You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek 
-        Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, 
-        and other non-computer science questions, you will refuse to answer. 
-        ### Instruction:
-        If the input is """ + input + """, what will the following code return? 
-        Return only the return value. For example if the return value is True, just return True.
-        Reason step by step to solve the problem. \n""" + entry["prompt"]
+        prompt = (
+            "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company. "
+            "You only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
+            "and other non-computer science questions, you will refuse to answer.\n"
+            "### Instruction:\n"
+            f"If the input is {input}, what will the following code return?\n"
+            "Return only the return value. For example, if the return value is True, just return True.\n"
+            "Reason step by step to solve the problem.\n"
+            f"{entry['canonical_solution']}"
+)
+
+        print(f"Prompt for Task_ID {entry['task_id']}:\n{prompt}")
         
         # TODO: prompt the model and get the response
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
