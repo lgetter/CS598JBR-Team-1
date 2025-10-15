@@ -43,12 +43,12 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         # Tip : Use can use any data from the dataset to create 
         #       the prompt including prompt, canonical_solution, test, etc.
         prompt = (
-            "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company. "
+            "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company."
             "You only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
             "and other non-computer science questions, you will refuse to answer.\n"
             "### Instruction:\n"
-            f"If the input is {input}, what will the following code return?\n"
-            "Return only the expected value in enclosing [Output][/Output] tags. For example, if the expected value is 1, return [Output]1[/Output].\n"
+            f"If the input is ({input}), what will the following code return?\n"
+            "Return only the expected value in enclosing [Output][/Output] tags. For example, if the expected value is True, return [Output]True[/Output].\n"
             "Reason step by step to solve the problem.\n"
             f"{entry['canonical_solution']}")
 
@@ -65,6 +65,9 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
 
         # TODO: process the response and save it to results
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+        print(f"Processed response for Task_ID {entry['task_id']}:\n{response}")
+
         response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
 
         verdict = False
