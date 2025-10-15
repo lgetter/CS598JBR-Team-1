@@ -1,4 +1,5 @@
 import jsonlines
+import random
 import sys
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
@@ -15,21 +16,52 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
     print(f"Working with {model_name} prompt type {vanilla}...")
     
     # TODO: download the model
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+  
     # TODO: load the model with quantization
-    
+    quant_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4"
+    )
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        trust_remote_code=True,
+        device_map="auto",
+        quantization_config=quant_config
+    )
+
     results = []
     for entry in dataset:
+        input, output = extract_random_test(entry["test"])
         # TODO: create prompt for the model
         # Tip : Use can use any data from the dataset to create 
         #       the prompt including prompt, canonical_solution, test, etc.
-        prompt = ""
+        prompt = """You are an AI programming assistant. You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek 
+        Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, 
+        and other non-computer science questions, you will refuse to answer. 
+        ### Instruction:
+        If the input is """ + input + """, what will the following code return? 
+        Return only the return value. For example if the return value is True, just return True.
+        Reason step by step to solve the problem. \n""" + entry["prompt"]
         
         # TODO: prompt the model and get the response
-        response = ""
+        inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+        outputs = model.generate(
+            **inputs,
+            max_length=500,
+            do_sample=False,
+            temperature=0.0
+        )
 
         # TODO: process the response and save it to results
-        verdict = False
+        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
+        verdict = False
+        if output in response:
+            verdict = True
+        
         print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nis_correct:\n{verdict}")
         results.append({
             "task_id": entry["task_id"],
@@ -39,6 +71,37 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         })
         
     return results
+
+def extract_random_test(entry):
+    tests = entry.strip().split("\n")
+    tests = [test for test in tests if test.strip().startswith("assert ")]
+    test = random.choice(tests)
+    test = test.strip()
+    if test.startswith("assert not candidate("): 
+        # assert not candidate(input)
+        start = test.find("candidate(") + len("candidate(")
+        end = test.rfind(")")
+        input_val = test[start:end].strip()
+        return input_val, "False"
+    elif test.startswith("assert candidate("): 
+        # assert candidate(input) == output
+        if "==" in test:
+            left, right = test.split("==", 1)
+            left = left.strip()
+            right = right.strip()
+            start = left.find("candidate(") + len("candidate(")
+            end = left.rfind(")")
+            input_val = left[start:end].strip()
+            output_val = right
+            return input_val, output_val
+        else: 
+            # assert candidate(input)
+            start = test.find("candidate(") + len("candidate(")
+            end = test.rfind(")")
+            input_val = test[start:end].strip()
+            return input_val, "True"
+    return None, None
+
 
 def read_jsonl(file_path):
     dataset = []
