@@ -34,7 +34,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
     )
 
     # map from task_id to test cases
-    test_info = json.load(open('selected_humaneval_tests.json', 'r')) 
+    test_info = json.load(open('selected_humaneval_tests_all.json', 'r')) 
 
     results = []
     for entry in dataset:
