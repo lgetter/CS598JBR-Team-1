@@ -48,9 +48,9 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
             "and other non-computer science questions, you will refuse to answer.\n"
             "### Instruction:\n"
             f"If the input is ({input}), what will the following code return?\n"
-            "Return only the expected value in enclosing [Output][/Output] tags. For example, if the expected value is True, return [Output]True[/Output].\n"
+            "Return the expected output of the provided function in enclosing [Output][/Output] tags. For example, if the expected output is True, return [Output]True[/Output].\n"
             "Reason step by step to solve the problem.\n"
-            f"{entry['canonical_solution']}")
+            f"Function:\n{entry['canonical_solution']}")
 
         print(f"Prompt for Task_ID {entry['task_id']}:\n{prompt}")
         
