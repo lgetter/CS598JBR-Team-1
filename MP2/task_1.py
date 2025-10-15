@@ -38,19 +38,43 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
 
     results = []
     for entry in dataset:
-        input, output = extract_random_test(test_info[entry['task_id']])
+        all_tests = test_info[entry['task_id']]
+        selected_test = all_tests.pop()
         # TODO: create prompt for the model
         # Tip : Use can use any data from the dataset to create 
         #       the prompt including prompt, canonical_solution, test, etc.
-        prompt = (
-            "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company."
-            "You only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
-            "and other non-computer science questions, you will refuse to answer.\n"
-            "### Instruction:\n"
-            f"If the input is ({input}), what will the following code return?\n"
-            "Return the expected output of the provided function in enclosing [Output][/Output] tags. For example, if the expected output is True, return [Output]True[/Output].\n"
-            "Reason step by step to solve the problem.\n"
-            f"Function:\n{entry['canonical_solution']}")
+        if vanilla:
+            prompt = (
+                "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company."
+                "You only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
+                "and other non-computer science questions, you will refuse to answer.\n"
+                "### Instruction:\n"
+                f"If the input is ({input}), what will the following code return?\n"
+                "The return value prediction must be enclosed between [Output] and [/Output] tags. For example : [Output]prediction[/Output]\n"
+                f"{entry['canonical_solution']}\n\n"
+                "### Response:\n")
+        else:
+            prompt = (
+                "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company."
+                "You only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
+                "and other non-computer science questions, you will refuse to answer.\n"
+                "### Instruction:\n"
+                "You are provided with a function description, the implementation of this function, and a sample input.\n"
+                "Your task is to determine the expected output of the function when given the sample input.\n"
+                "Reason through the problem step by step to arrive at the correct output.\n"
+                "You must return the expected output of the provided function in enclosing [Output][/Output] tags as the final output.\n"
+                "For example, if the expected output is True, return [Output]True[/Output].\n"
+                "Reason step by step to solve the problem.\n"
+                "Function description:\n"
+                f"'{entry['prompt']}'\n"
+                "Function implementation:\n"
+                f"{entry['canonical_solution']}"
+                f"Sample input:\n"
+                f"{selected_test['input']}\n"
+                "Here are some example inputs and their expected outputs:\n")
+            
+            for test in all_tests:
+                prompt += f"Input: {test['input']} => Expected Output: {test['output']}\n"
 
         print(f"Prompt for Task_ID {entry['task_id']}:\n{prompt}")
         
@@ -71,10 +95,10 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
 
         verdict = False
-        if output in response:
+        if selected_test['output'] in response:
             verdict = True
         
-        print(f"\nExpected output:\n{output}\nIs correct: {verdict}\n")
+        print(f"\nExpected output:\n{selected_test['output']}\nIs correct: {verdict}\n")
         
         # print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
         results.append({
