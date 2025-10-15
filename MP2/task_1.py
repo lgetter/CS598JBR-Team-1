@@ -1,3 +1,4 @@
+import json
 import jsonlines
 import random
 import sys
@@ -32,9 +33,12 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         quantization_config=quant_config
     )
 
+    # map from task_id to test cases
+    test_info = json.load(open('selected_humaneval_tests.json', 'r')) 
+
     results = []
     for entry in dataset:
-        input, output = extract_random_test(entry["test"])
+        input, output = extract_random_test(test_info[entry['task_id']])
         # TODO: create prompt for the model
         # Tip : Use can use any data from the dataset to create 
         #       the prompt including prompt, canonical_solution, test, etc.
@@ -44,10 +48,9 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
             "and other non-computer science questions, you will refuse to answer.\n"
             "### Instruction:\n"
             f"If the input is {input}, what will the following code return?\n"
-            "Return only the return value. For example, if the return value is True, just return True.\n"
+            "Return only the expected value in enclosing [Output][/Output] tags. For example, if the expected value is 1, return [Output]1[/Output].\n"
             "Reason step by step to solve the problem.\n"
-            f"{entry['canonical_solution']}"
-)
+            f"{entry['canonical_solution']}")
 
         print(f"Prompt for Task_ID {entry['task_id']}:\n{prompt}")
         
@@ -62,12 +65,13 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
 
         # TODO: process the response and save it to results
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
 
         verdict = False
         if output in response:
             verdict = True
         
-        print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nis_correct:\n{verdict}")
+        print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
         results.append({
             "task_id": entry["task_id"],
             "prompt": prompt,
@@ -77,36 +81,9 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         
     return results
 
-def extract_random_test(entry):
-    tests = entry.strip().split("\n")
-    tests = [test for test in tests if test.strip().startswith("assert ")]
-    test = random.choice(tests)
-    test = test.strip()
-    if test.startswith("assert not candidate("): 
-        # assert not candidate(input)
-        start = test.find("candidate(") + len("candidate(")
-        end = test.rfind(")")
-        input_val = test[start:end].strip()
-        return input_val, "False"
-    elif test.startswith("assert candidate("): 
-        # assert candidate(input) == output
-        if "==" in test:
-            left, right = test.split("==", 1)
-            left = left.strip()
-            right = right.strip()
-            start = left.find("candidate(") + len("candidate(")
-            end = left.rfind(")")
-            input_val = left[start:end].strip()
-            output_val = right
-            return input_val, output_val
-        else: 
-            # assert candidate(input)
-            start = test.find("candidate(") + len("candidate(")
-            end = test.rfind(")")
-            input_val = test[start:end].strip()
-            return input_val, "True"
-    return None, None
-
+def extract_random_test(tests):
+    selected_test = random.choice(tests)
+    return selected_test['input'], selected_test['output']
 
 def read_jsonl(file_path):
     dataset = []
