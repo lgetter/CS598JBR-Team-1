@@ -84,9 +84,8 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
         outputs = model.generate(
             **inputs,
-            max_length=500,
-            do_sample=False,
-            temperature=0.0
+            max_new_tokens=500,
+            do_sample=False
         )
 
         # TODO: process the response and save it to results
