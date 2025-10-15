@@ -71,12 +71,12 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 f"'{entry['prompt']}'\n"
                 "Function implementation:\n"
                 f"{entry['canonical_solution']}"
-                f"Sample input:\n"
-                f"{input}\n"
                 "Here are some example inputs and their expected outputs:\n")
             
             for test in all_tests:
                 prompt += f"Input: {test['input']} => Expected Output: [Output]{test['output']}[/Output]\n"
+
+            prompt += f"Now, given the input: ({input}), what is the expected output?\n### Response:\n"
 
         print(f"Prompt for Task_ID {entry['task_id']}:\n{prompt}")
         
@@ -100,7 +100,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         if output in response:
             verdict = True
         
-        print(f"\nExpected output:\n{output}\nIs correct: {verdict}\n")
+        print(f"\nExpected output:\n{output}\nActual output:{response}\nIs correct: {verdict}\n")
         
         # print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
         results.append({
