@@ -66,7 +66,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         # TODO: process the response and save it to results
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-        print(f"Processed response for Task_ID {entry['task_id']}:\n{response}")
+        print(f"Processed response for Task_ID {entry['task_id']}:\n[[[[{response}]]]]")
 
         response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
 
@@ -74,7 +74,9 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         if output in response:
             verdict = True
         
-        print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
+        print(f"\nExpected output:\n{output}\nIs correct: {verdict}\n")
+        
+        # print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
         results.append({
             "task_id": entry["task_id"],
             "prompt": prompt,
