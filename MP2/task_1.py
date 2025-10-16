@@ -98,33 +98,76 @@ def prompt_model(
             #     "Here are some example inputs and their outputs:\n\n"
             # )
 
+            # Sean - V5
             prompt = (
-                "You are acting as Guido Van Rossum, the legendary genius creator behind Python.\n"
-                "Your task is to analyze the provided Python function and determine the expected output with the given input.\n\n"
-                "### Instructions:\n\n"
-                "Using the given Python code function, perform the following steps:\n"
-                "1. Read through the entire Python function to fully understand it.\n"
-                "2. Analyze the provided function input parameter(s). The example inputs are enclosed in [Input] and [/Input] tags, like this: [Input]parameters[/Input]\n"
-                "3. Determine the expected output of the function given the input parameters.\n"
-                "5. Return your answer for the expected output enclosed in [Output] and [/Output] tags, like this: [Output]answer[/Output]\n\n"
-                "### Function:\n\n"
-                f"{entry['canonical_solution']}\n\n"
+                # "You are acting as Guido Van Rossum, the legendary genius creator behind Python.\n"
+                # "Your task is to analyze the provided Python function and determine the expected output with the given input.\n\n"
+                # "### Instructions:\n\n"
+                # "Using the given Python code function, perform the following steps:\n"
+                # "1. Read through the entire Python function to fully understand it.\n"
+                # "2. Analyze the provided function input parameter(s). The example inputs are enclosed in [Input] and [/Input] tags, like this: [Input]parameters[/Input]\n"
+                # "3. Determine the expected output of the function given the input parameters.\n"
+                # "5. Return your answer for the expected output enclosed in [Output] and [/Output] tags, like this: [Output]answer[/Output]\n\n"
+                # "### Function:\n\n"
+                # f"{entry['canonical_solution']}\n\n"
                 # "### Examples:\n\n"
                 # "The example inputs are enclosed in [Input] and [/Input] tags [Input]parameters[/Input].\n"
                 # "Here are some example inputs and their outputs:\n\n"
             )
+            # Sean V6
+            prompt = f"""
+                You are a meticulous Python interpreter.
+                Given a function and an input, determine the exact return value.
+
+                ### Rules:
+                - Do any reasoning silently.
+                - Output ONLY the final value wrapped in [Output]...[/Output].
+                - No quotes around strings unless the function actually returns a quoted string.
+                - Use Python bools True/False and exact list/tuple/dict formatting.
+                - Do not print or explain.
+
+                ### Function:
+                ```python
+                {entry['canonical_solution']}
+                ```
+
+                ### Examples:
+                """
 
             # for test in all_tests:
             #     prompt += f"Input: [Input]{test['input']}[/Input] => Output: [Output]{test['output']}[/Output]\n"
 
-            prompt += f"\nNow, given the input parameter(s): [Input]{input}[/Input], what is the expected output?\n\n"
+            for test in all_tests:
+                prompt += f"[Input]{test['input']}[/Input] -> Output: [Output]{test['output']}[/Output]\n\n"
 
-            prompt += "### Response:\n\n"
+            prompt += "### Question:\n"
+            prompt += (
+                f"Given [Input]{input}[/Input], return [Output]...[/Output] only.\n\n"
+            )
+
+            # prompt += f"\nNow, given the input parameter(s): [Input]{input}[/Input], what is the expected output?\n\n"
+
+            prompt += "### Response:\n"
 
         print(f"Prompt for Task_ID {entry['task_id']}:\n\n{prompt}")
 
         # TODO: prompt the model and get the response
-        inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+
+        # Original version
+        # inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+
+        # V2 utilizing message template
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a meticulous Python interpreter. Think privately. Return only the final answer.",
+            },
+            {"role": "user", "content": prompt},
+        ]
+        inputs = tokenizer.apply_chat_template(
+            messages, tokenize=True, add_generation_prompt=True, return_tensors="pt"
+        ).to(model.device)
+
         outputs = model.generate(**inputs, max_new_tokens=1000, do_sample=False)
 
         # TODO: process the response and save it to results
@@ -140,7 +183,7 @@ def prompt_model(
         response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
         print(f"Processed response for Task_ID {entry['task_id']}:\n\n{response}")
-        print("========================================\n\n")
+        print("========================================\n")
 
         response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
 
