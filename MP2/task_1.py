@@ -61,113 +61,35 @@ def prompt_model(
                 "### Response:\n"
             )
         else:
-            # v1
-            # prompt = (
-            #     "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n"
-            #     "You only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
-            #     "and other non-computer science questions, you will refuse to answer.\n"
-            #     "### Instruction:\n"
-            #     "You are provided with a function description, the implementation of this function, and a sample input.\n"
-            #     "Your task is to determine the expected output of the function when given the sample input.\n"
-            #     "Reason through the problem step by step to arrive at the correct output.\n"
-            #     "You must return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n"
-            #     "For example, if the expected output is True, return [Output]True[/Output].\n"
-            #     "Reason step by step to solve the problem.\n"
-            #     "Function description:\n"
-            #     f"'{entry['prompt']}'\n"
-            #     "Function implementation:\n"
-            #     f"{entry['canonical_solution']}"
-            #     "Here are some example inputs and their expected outputs:\n")
-
-            # Crafted prompt v3 - Sean
-            # prompt = (
-            #     "You are acting as Guido Van Rossum, the legendary genius creator behind Python.\n"
-            #     "Your task is to analyze the provided Python function and determine the expected output with the given input.\n\n"
-            #     "### Instructions:\n\n"
-            #     "Using the given Python code function, perform the following steps:\n"
-            #     "1. Read through the entire Python function to fully understand it.\n"
-            #     "2. Analyze the provided function input parameter(s). Take note of the type, number of parameters, and order the parameters are passed to the function.\n"
-            #     "3. Reason through the execution logic of the function body step by step, showing your thoughts and steps in your output.\n"
-            #     "4. Examine the example inputs and outputs and logically think through how the code executes to arrive at the example answers, revising your reasoning from the previous step if your reasoned answers are misaligned from the examples.\n"
-            #     "4. Determine the expected output of the function given the input.\n"
-            #     "5. Return the answer enclosed in [Output] and [/Output] tags, like this: [Output]answer[/Output]\n\n"
-            #     "### Function:\n\n"
-            #     f"{entry['canonical_solution']}\n\n"
-            #     "### Examples:\n\n"
-            #     "The example inputs are enclosed in [Input] and [/Input] tags [Input]parameters[/Input].\n"
-            #     "Here are some example inputs and their outputs:\n\n"
-            # )
-
-            # Sean - V5
-            # prompt = (
-                # "You are acting as Guido Van Rossum, the legendary genius creator behind Python.\n"
-                # "Your task is to analyze the provided Python function and determine the expected output with the given input.\n\n"
-                # "### Instructions:\n\n"
-                # "Using the given Python code function, perform the following steps:\n"
-                # "1. Read through the entire Python function to fully understand it.\n"
-                # "2. Analyze the provided function input parameter(s). The example inputs are enclosed in [Input] and [/Input] tags, like this: [Input]parameters[/Input]\n"
-                # "3. Determine the expected output of the function given the input parameters.\n"
-                # "5. Return your answer for the expected output enclosed in [Output] and [/Output] tags, like this: [Output]answer[/Output]\n\n"
-                # "### Function:\n\n"
-                # f"{entry['canonical_solution']}\n\n"
-                # "### Examples:\n\n"
-                # "The example inputs are enclosed in [Input] and [/Input] tags [Input]parameters[/Input].\n"
-                # "Here are some example inputs and their outputs:\n\n"
-            # )
-
-            # Sean V6
-
             prompt = (
-                "You are a meticulous Python interpreter.\n"
-                "Given a function and an input, determine the output.\n"
-
-                "### Rules:\n"
-                "- Reason through the Python function step by step, but do it silently. Don't output your reasoning steps.\n"
-                "- Output ONLY the final value wrapped in [Output]...[/Output]. End the prompt immediately after [/Output]\n"
-
-                "### Function:\n"
-                "```python\n"
-                f"{entry['canonical_solution']}\n"
-                "```\n"
-
-                "### Example Inputs and Outputs:\n"
+                "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n"
+                "You only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
+                "and other non-computer science questions, you will refuse to answer.\n"
+                "### Instruction:\n"
+                "You are provided with a function description, the implementation of this function, and a sample input-output pair.\n"
+                "Your task is to determine the expected output of the function with the given input.\n"
+                "Reason through the function step by step to arrive at the correct output.\n"
+                "You must return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n"
+                "For example, if the expected output is True, return [Output]True[/Output].\n"
+                "Immediately end the prompt after [/Output].\n"
+                "Function description:\n"
+                f"'{entry['prompt']}'\n"
+                "Function implementation:\n"
+                f"{entry['canonical_solution']}"
+                "Here are some example inputs and their expected outputs:\n"
                 )
-            
-            prompt = prompt.strip()
-
-            # for test in all_tests:
-            #     prompt += f"Input: [Input]{test['input']}[/Input] => Output: [Output]{test['output']}[/Output]\n"
 
             for test in all_tests:
-                prompt += f"[Input]{test['input']}[/Input] -> Output: [Output]{test['output']}[/Output]\n"
+                prompt += f"Input: {test['input']} -> Output: [Output]{test['output']}[/Output]\n"
 
             prompt += "\n### Question:\n"
-            prompt += (f"Given [Input]{input}[/Input], return [Output]...[/Output].\n\n")
-
-            # prompt += f"\nNow, given the input parameter(s): [Input]{input}[/Input], what is the expected output?\n\n"
-
+            prompt += (f"Now, given [Input]{input}[/Input], what is the expected output?\n")
             prompt += "### Response:\n"
 
         print(f"Prompt for Task_ID {entry['task_id']}:\n\n{prompt}")
 
         # TODO: prompt the model and get the response
-
-        # Original version
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-
-        # V2 utilizing message template
-        # messages = [
-        #     {
-        #         "role": "system",
-        #         "content": "You are a meticulous Python interpreter. Think privately. Return only the final answer.",
-        #     },
-        #     {"role": "user", "content": prompt},
-        # ]
-        # inputs = tokenizer.apply_chat_template(
-        #     messages,
-        #     add_generation_prompt=True,
-        #     return_tensors="pt"
-        # ).to(model.device)
 
         # Original outputs
         outputs = model.generate(
@@ -175,14 +97,6 @@ def prompt_model(
             max_new_tokens=250,
             do_sample=False,
         )
-
-        # Outputs v2
-        # outputs = model.generate(
-        #     input_ids=inputs,
-        #     max_new_tokens=250,
-        #     do_sample=False,
-        #     eos_token_id=tokenizer.eos_token_id,
-        # )
 
         # TODO: process the response and save it to results
 
@@ -197,7 +111,7 @@ def prompt_model(
         new_tokens = outputs[0][input_length:]
         response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
-        print(f"Processed response for Task_ID {entry['task_id']}:\n\n{response}")
+        print(f"Processed response for Task_ID {entry['task_id']}:\n{response}")
         print("========================================\n")
 
         response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
