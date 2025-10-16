@@ -9,6 +9,17 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 # Please finish all TODOs in this file for MP2;
 #####################################################
 
+def extract_function_signature(prompt_content):
+    """
+    Extracts the function signature (including imports/type hints) from the prompt.
+    The extraction stops exactly at the colon that ends the function definition line(s).
+    """
+
+    # Find the end of the function signature
+    end_index = prompt_content.find(':\n')
+    
+    return prompt_content[0:end_index+1]
+
 
 def save_file(content, file_path):
     with open(file_path, "w") as file:
@@ -18,12 +29,12 @@ def save_file(content, file_path):
 def prompt_model(
     dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct", vanilla=True
 ):
-    print("\nBegin task_1.py\n\n")
+    print("\nBegin task_1.py\n")
 
     if vanilla:
-        print(f"Working with {model_name} prompt type vanilla...")
+        print(f"Working with model = {model_name}, prompt type vanilla...")
     else:
-        print(f"Working with {model_name} prompt type crafted...")
+        print(f"Working with model = {model_name}, prompt type crafted...")
 
     # TODO: download the model
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
@@ -45,9 +56,9 @@ def prompt_model(
     # map from task_id to test cases
     test_info = json.load(open("selected_humaneval_tests_all.json", "r"))
 
-    print("Begin HumanEval prompting tests\n\n")
+    print("\nBegin HumanEval prompting tests\n")
 
-    print("========================================\n\n")
+    print("========================================\n")
 
     results = []
     for entry in dataset:
@@ -55,46 +66,57 @@ def prompt_model(
         selected_test = all_tests.pop()
         input = selected_test["input"]
         output = selected_test["output"]
+
+        function_signature = extract_function_signature(entry['prompt'])
+
         # TODO: create prompt for the model
         # Tip : Use can use any data from the dataset to create
         #       the prompt including prompt, canonical_solution, test, etc.
         if vanilla:
             prompt = (
                 "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n"
-                "You only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
+                "You only answer questions related to computer science.\n"
+                "For politically sensitive questions, security and privacy issues, "
                 "and other non-computer science questions, you will refuse to answer.\n"
                 "### Instructions:\n"
-                f"If the input is ({input}), what will the following code return?\n"
-                "The return value prediction must be enclosed between [Output] and [/Output] tags. For example : [Output]prediction[/Output]\n\n"
+                f"If the input is {input}, what will the following code return?\n"
+                "The return value prediction must be enclosed between [Output] and [/Output] tags.\n"
+                "For example : [Output]prediction[/Output]\n\n"
+                f"{function_signature}\n"
                 f"{entry['canonical_solution']}\n\n"
                 "### Response:\n\n"
             )
         else:
             prompt = (
                 "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n"
-                "You only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
+                "You only answer questions related to computer science.\n"
+                "For politically sensitive questions, security and privacy issues, "
                 "and other non-computer science questions, you will refuse to answer.\n"
                 "### Instructions:\n"
                 "You are provided with a function description, the implementation of this function, and a few sample input-output pairs.\n"
                 "Your task is to determine the expected output of the function with the given input.\n"
                 "Reason through the function step by step to arrive at the correct output.\n"
                 "You must return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n"
-                "For example, if the expected output is True, return [Output]True[/Output].\n"
+                "For example, if the expected output is '1234', you should return [Output]'1234'[/Output].\n"
                 "Immediately end the prompt after [/Output].\n\n"
                 "Function description:\n\n"
                 f"'{entry['prompt']}'\n\n"
                 "Function implementation:\n\n"
+                f"{function_signature}\n"
                 f"{entry['canonical_solution']}"
-                "Here are some example inputs and their expected outputs:\n\n"
+                "Here are some example inputs and their expected outputs formatted in the requested response type:\n\n"
                 )
 
             for test in all_tests:
                 prompt += f"Input: {test['input']} -> Output: [Output]{test['output']}[/Output]\n"
 
+            prompt += "\nPay close attention to the return types from the example outputs, your answer should match the same data type/structure.\n"
+
             prompt += "\n### Question:\n"
-            prompt += (f"Now, given {input}, what is the expected output?\n")
-            prompt += "Remember to return your answer for the expected output in the format [Output]answer[/Output]. IMMEDIATELY end the prompt afterwards.\n"
-            prompt += "### Response:\n"
+            prompt += (f"Now, given the function input: {input}, what is the expected output?\n")
+            prompt += "Remember to return your answer for the expected output in the format [Output]answer[/Output].\n"
+            prompt += "IMMEDIATELY end the response afterwards.\n\n"
+            prompt += "### Response:\n\n"
 
         print(f"Prompt for Task_ID {entry['task_id']}:\n\n{prompt}")
 
