@@ -116,28 +116,22 @@ def prompt_model(
             # )
 
             # Sean V6
-            from textwrap import dedent
 
-            # code = dedent(entry['canonical_solution']).strip()
+            prompt = (
+                "You are a meticulous Python interpreter.\n"
+                "Given a function and an input, determine the output.\n"
 
-            prompt = dedent(f"""
-                You are a meticulous Python interpreter.
-                Given a function and an input, determine the exact return value.
+                "### Rules:\n"
+                "- Reason through the Python function step by step, but do it silently. Don't output your reasoning steps.\n"
+                "- Output ONLY the final value wrapped in [Output]...[/Output]. End the prompt immediately after [/Output]\n"
 
-                ### Rules:
-                - Do any reasoning silently.
-                - Output ONLY the final value wrapped in [Output]...[/Output].
-                - No quotes around strings unless the function actually returns a quoted string.
-                - Use Python bools True/False and exact list/tuple/dict formatting.
-                - Do not print or explain.
+                "### Function:\n"
+                "```python\n"
+                f"{entry['canonical_solution']}\n"
+                "```\n"
 
-                ### Function:
-                ```python
-                {entry['canonical_solution']}
-                ```
-
-                ### Examples:
-                """)
+                "### Example Inputs and Outputs:\n"
+                )
             
             prompt = prompt.strip()
 
@@ -148,7 +142,7 @@ def prompt_model(
                 prompt += f"[Input]{test['input']}[/Input] -> Output: [Output]{test['output']}[/Output]\n"
 
             prompt += "\n### Question:\n"
-            prompt += (f"Given [Input]{input}[/Input], return [Output]...[/Output] only.\n\n")
+            prompt += (f"Given [Input]{input}[/Input], return [Output]...[/Output].\n\n")
 
             # prompt += f"\nNow, given the input parameter(s): [Input]{input}[/Input], what is the expected output?\n\n"
 
