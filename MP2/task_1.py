@@ -99,7 +99,7 @@ def prompt_model(
             # )
 
             # Sean - V5
-            prompt = (
+            # prompt = (
                 # "You are acting as Guido Van Rossum, the legendary genius creator behind Python.\n"
                 # "Your task is to analyze the provided Python function and determine the expected output with the given input.\n\n"
                 # "### Instructions:\n\n"
@@ -113,13 +113,14 @@ def prompt_model(
                 # "### Examples:\n\n"
                 # "The example inputs are enclosed in [Input] and [/Input] tags [Input]parameters[/Input].\n"
                 # "Here are some example inputs and their outputs:\n\n"
-            )
+            # )
+
             # Sean V6
             from textwrap import dedent
 
-            code = dedent(entry['canonical_solution']).strip()
+            # code = dedent(entry['canonical_solution']).strip()
 
-            prompt = dedent(f"""\
+            prompt = dedent(f"""
                 You are a meticulous Python interpreter.
                 Given a function and an input, determine the exact return value.
 
@@ -132,11 +133,13 @@ def prompt_model(
 
                 ### Function:
                 ```python
-                {code}
+                {entry['canonical_solution']}
                 ```
 
                 ### Examples:
                 """)
+            
+            prompt = prompt.strip()
 
             # for test in all_tests:
             #     prompt += f"Input: [Input]{test['input']}[/Input] => Output: [Output]{test['output']}[/Output]\n"
@@ -156,42 +159,43 @@ def prompt_model(
         # TODO: prompt the model and get the response
 
         # Original version
-        # inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+        inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
         # V2 utilizing message template
-        messages = [
-            {
-                "role": "system",
-                "content": "You are a meticulous Python interpreter. Think privately. Return only the final answer.",
-            },
-            {"role": "user", "content": prompt},
-        ]
-        inputs = tokenizer.apply_chat_template(
-            messages,
-            add_generation_prompt=True,
-            return_tensors="pt"
-        ).to(model.device)
+        # messages = [
+        #     {
+        #         "role": "system",
+        #         "content": "You are a meticulous Python interpreter. Think privately. Return only the final answer.",
+        #     },
+        #     {"role": "user", "content": prompt},
+        # ]
+        # inputs = tokenizer.apply_chat_template(
+        #     messages,
+        #     add_generation_prompt=True,
+        #     return_tensors="pt"
+        # ).to(model.device)
 
+        # Original outputs
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=250,
+            do_sample=False,
+        )
+
+        # Outputs v2
         # outputs = model.generate(
-        #     **inputs,
+        #     input_ids=inputs,
         #     max_new_tokens=250,
         #     do_sample=False,
         #     eos_token_id=tokenizer.eos_token_id,
         # )
 
-        # Outputs v2
-        outputs = model.generate(
-            input_ids=inputs,
-            max_new_tokens=250,
-            do_sample=False,
-            eos_token_id=tokenizer.eos_token_id,
-        )
-
         # TODO: process the response and save it to results
+
+        # Original response
         # response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-        # Avoid printing the prompt again in the response
-
+        ## Avoid printing the prompt again in the response
         # Get the length of the input tokens
         input_length = inputs.input_ids.shape[1]
 
