@@ -87,28 +87,31 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
             )
         else:
             prompt = (
-                "You are an expert Python programmer. Help solve the following question.\n\n"
-                "### Instructions:\n\n"
+                # "You are an expert Python programmer. Help solve the following question.\n\n"
+                # "### Instructions:\n\n"
                 # "You are provided with a Python function description, the implementation of this function, and an example input-output pair.\n"
-                "You are provided with a Python function and an example input and output.\n"
-                "Your task is to determine the expected output of the function with the given input.\n"
-                "You must return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n"
-                "For example, if the expected output is '1234', you should return [Output]'1234'[/Output].\n\n" 
+                # "You are provided with a Python function and an example input and output.\n"
+                # "Your task is to determine the expected output of the function with the given input.\n"
+                # "You must return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n"
+                # "For example, if the expected output is '1234', you should return [Output]'1234'[/Output].\n\n" 
                 # "Function description:\n"
                 # f"{entry['prompt']}\n"
-                "Pyhton Function:\n"
+                # "Pyhton Function:\n"
+                f"What is the output of this Python function with this input: {input}\n"
                 f"{function_signature}\n"
                 f"{entry['canonical_solution']}\n"
-                "Here is an example input and output formatted in the requested response type:\n\n"
+                # "Here is an example input and output formatted in the requested response type:\n\n"
                 )
 
-            for test in all_tests:
-                prompt += f"Input: {test['input']} -> Output: [Output]{test['output']}[/Output]\n"
-                break
+            # for test in all_tests:
+            #     prompt += f"Input: {test['input']} -> Output: [Output]{test['output']}[/Output]\n"
+            #     break
 
-            prompt += "\n### Question:\n"
-            prompt += (f"Now, given the function input: {input}, what is the expected output?\n")
-            prompt += "### Response:\n\n"
+            # prompt += "\n### Question:\n\n"
+            # prompt += (f"Now, given the function input: {input}, what is the expected output?\n\n")
+            # prompt += "### Response:\n\n"
+
+            prompt += "Return your answer between [Output] and [/Output] tags."
 
         print(f"Prompt for Task_ID {entry['task_id']}:\n\n{prompt}")
 
