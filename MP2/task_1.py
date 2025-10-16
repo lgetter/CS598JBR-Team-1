@@ -18,7 +18,12 @@ def save_file(content, file_path):
 def prompt_model(
     dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct", vanilla=True
 ):
-    print(f"Working with {model_name} prompt type {vanilla}...")
+    print("Begin task_1.py\n\n")
+
+    if vanilla:
+        print(f"Working with {model_name} prompt type vanilla...")
+    else:
+        print(f"Working with {model_name} prompt type crafted...")
 
     # TODO: download the model
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
@@ -26,7 +31,7 @@ def prompt_model(
     # # TODO: load the model with quantization
     quant_config = BitsAndBytesConfig(
         load_in_4bit=True,
-        bnb_4bit_compute_dtype=torch.float16,
+        bnb_4bit_compute_dtype=torch.bfloat16,
         bnb_4bit_use_double_quant=True,
         bnb_4bit_quant_type="nf4",
     )
@@ -39,6 +44,10 @@ def prompt_model(
 
     # map from task_id to test cases
     test_info = json.load(open("selected_humaneval_tests_all.json", "r"))
+
+    print("Begin HumanEval prompting tests\n\n")
+
+    print("========================================\n\n")
 
     results = []
     for entry in dataset:
@@ -54,7 +63,7 @@ def prompt_model(
                 "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n"
                 "You only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
                 "and other non-computer science questions, you will refuse to answer.\n"
-                "### Instruction:\n"
+                "### Instructions:\n"
                 f"If the input is ({input}), what will the following code return?\n"
                 "The return value prediction must be enclosed between [Output] and [/Output] tags. For example : [Output]prediction[/Output]\n"
                 f"{entry['canonical_solution']}\n\n"
@@ -65,8 +74,8 @@ def prompt_model(
                 "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n"
                 "You only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
                 "and other non-computer science questions, you will refuse to answer.\n"
-                "### Instruction:\n"
-                "You are provided with a function description, the implementation of this function, and a sample input-output pair.\n"
+                "### Instructions:\n"
+                "You are provided with a function description, the implementation of this function, and a few sample input-output pairs.\n"
                 "Your task is to determine the expected output of the function with the given input.\n"
                 "Reason through the function step by step to arrive at the correct output.\n"
                 "You must return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n"
@@ -83,7 +92,8 @@ def prompt_model(
                 prompt += f"Input: {test['input']} -> Output: [Output]{test['output']}[/Output]\n"
 
             prompt += "\n### Question:\n"
-            prompt += (f"Now, given [Input]{input}[/Input], what is the expected output?\n")
+            prompt += (f"Now, given {input}, what is the expected output?\n")
+            prompt += "Remember to return your answer for the expected output in the format [Output]answer[/Output]. IMMEDIATELY end the prompt afterwards.\n"
             prompt += "### Response:\n"
 
         print(f"Prompt for Task_ID {entry['task_id']}:\n\n{prompt}")
@@ -94,8 +104,9 @@ def prompt_model(
         # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=250,
+            max_new_tokens=1000,
             do_sample=False,
+            temperature=0.0
         )
 
         # TODO: process the response and save it to results
