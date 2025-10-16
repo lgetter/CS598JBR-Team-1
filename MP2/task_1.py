@@ -168,7 +168,12 @@ def prompt_model(
             messages, tokenize=True, add_generation_prompt=True, return_tensors="pt"
         ).to(model.device)
 
-        outputs = model.generate(**inputs, max_new_tokens=1000, do_sample=False)
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=250,
+            do_sample=False,
+            eos_token_id=tokenizer.eos_token_id,
+        )
 
         # TODO: process the response and save it to results
         # response = tokenizer.decode(outputs[0], skip_special_tokens=True)
