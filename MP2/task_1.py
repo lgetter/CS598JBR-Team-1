@@ -115,7 +115,11 @@ def prompt_model(
                 # "Here are some example inputs and their outputs:\n\n"
             )
             # Sean V6
-            prompt = f"""
+            from textwrap import dedent
+
+            code = dedent(entry['canonical_solution']).strip()
+
+            prompt = dedent(f"""\
                 You are a meticulous Python interpreter.
                 Given a function and an input, determine the exact return value.
 
@@ -128,22 +132,20 @@ def prompt_model(
 
                 ### Function:
                 ```python
-                {entry['canonical_solution']}
+                {code}
                 ```
 
                 ### Examples:
-                """
+                """)
 
             # for test in all_tests:
             #     prompt += f"Input: [Input]{test['input']}[/Input] => Output: [Output]{test['output']}[/Output]\n"
 
             for test in all_tests:
-                prompt += f"[Input]{test['input']}[/Input] -> Output: [Output]{test['output']}[/Output]\n\n"
+                prompt += f"[Input]{test['input']}[/Input] -> Output: [Output]{test['output']}[/Output]\n"
 
-            prompt += "### Question:\n"
-            prompt += (
-                f"Given [Input]{input}[/Input], return [Output]...[/Output] only.\n\n"
-            )
+            prompt += "\n### Question:\n"
+            prompt += (f"Given [Input]{input}[/Input], return [Output]...[/Output] only.\n\n")
 
             # prompt += f"\nNow, given the input parameter(s): [Input]{input}[/Input], what is the expected output?\n\n"
 
@@ -165,11 +167,21 @@ def prompt_model(
             {"role": "user", "content": prompt},
         ]
         inputs = tokenizer.apply_chat_template(
-            messages, tokenize=True, add_generation_prompt=True, return_tensors="pt"
+            messages,
+            add_generation_prompt=True,
+            return_tensors="pt"
         ).to(model.device)
 
+        # outputs = model.generate(
+        #     **inputs,
+        #     max_new_tokens=250,
+        #     do_sample=False,
+        #     eos_token_id=tokenizer.eos_token_id,
+        # )
+
+        # Outputs v2
         outputs = model.generate(
-            **inputs,
+            input_ids=inputs,
             max_new_tokens=250,
             do_sample=False,
             eos_token_id=tokenizer.eos_token_id,
