@@ -78,31 +78,34 @@ def prompt_model(
             #     f"{entry['canonical_solution']}"
             #     "Here are some example inputs and their expected outputs:\n")
 
-            # Crafted prompt v2 - Sean
+            # Crafted prompt v3 - Sean
             prompt = (
                 "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n"
                 "You only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
-                "and other non-computer science questions, you will refuse to answer.\n"
-                "### Instruction:\n"
-                "Using the provided code function, perform the following steps:\n"
-                "1. Read through the entire function carefully."
-                "2. Reason through the execution logic of the function step by step."
-                "3. Analyze the given function input."
-                "4. Determine the expected output of the provided function given the input."
-                "5. Return the answer in the format [Output]prediction[/Output]"
-                "### Function:\n"
-                f"{entry['canonical_solution']}"
-                "### Examples:\n"
-                "Here are some example inputs and their expected outputs:\n"
+                "and other non-computer science questions, you will refuse to answer.\n\n"
+                "### Instruction:\n\n"
+                "Using the given Python code function, perform the following steps:\n"
+                "1. Read through the entire Python function to fully understand it.\n"
+                "2. Analyze the provided function input parameter(s). Take note of the type, number of parameters, and order the parameters are passed to the function\n"
+                "3. Reason through the execution logic of the function body step by step, showing your thoughts and steps in your output.\n"
+                "4. Examine the example inputs and outputs and logically think through how the code executes to arrive at the example answers, revising your reasoning from the previous step if your reasoned answers are misaligned from the examples.\n"
+                "4. Determine the expected output of the function given the input.\n"
+                "5. Return the answer enclosed in [Output] and [/Output] tags, like this: [Output]answer[/Output]\n\n"
+                "### Function:\n\n"
+                f"{entry['canonical_solution']}\n\n"
+                "### Examples:\n\n"
+                "The example inputs are enclosed in [Input] and [/Input] tags [Input]parameters[/Input].\n"
+                "Here are some example inputs and their outputs:\n\n"
             )
 
             for test in all_tests:
-                prompt += f"Input: {test['input']} => Expected Output: [Output]{test['output']}[/Output]\n"
+                prompt += f"Input: [Input]{test['input']}[/Input] => Output: [Output]{test['output']}[/Output]\n"
 
-            prompt += f"Now, given the input: ({input}), what is the expected output?"
+            prompt += f"Now, given the input parameter(s): [Input]{input}[/Input], what is the expected output?\n\n"
+
             prompt += "### Response:\n"
 
-        print(f"Prompt for Task_ID {entry['task_id']}:\n{prompt}")
+        print(f"Prompt for Task_ID {entry['task_id']}:\n\n{prompt}")
 
         # TODO: prompt the model and get the response
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
@@ -111,7 +114,7 @@ def prompt_model(
         # TODO: process the response and save it to results
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-        print(f"Processed response for Task_ID {entry['task_id']}:\n{response}")
+        print(f"Processed response for Task_ID {entry['task_id']}:\n\n{response}")
         print("========================================\n\n")
 
         response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
@@ -121,12 +124,12 @@ def prompt_model(
             verdict = True
 
         print(
-            f"\nExpected output:\n{output}\nActual output:{response}\nIs correct: {verdict}\n"
+            f"Expected output: {output}\n"
+            "Actual output: {response}\n"
+            "Is correct: {verdict}\n"
         )
 
-        print(
-            f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nexpected response:\n{output}\nis_correct:\n{verdict}"
-        )
+        # print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
         results.append(
             {
                 "task_id": entry["task_id"],
