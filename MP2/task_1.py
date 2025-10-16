@@ -29,12 +29,12 @@ def save_file(content, file_path):
 def prompt_model(
     dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct", vanilla=True
 ):
-    print("\nBegin task_1.py\n")
+    print("\nBegin task_1.py:\n")
 
     if vanilla:
-        print(f"Working with model = {model_name}, prompt type vanilla...")
+        print(f"Working with model = {model_name}, prompt type = vanilla...")
     else:
-        print(f"Working with model = {model_name}, prompt type crafted...")
+        print(f"Working with model = {model_name}, prompt type = crafted...")
 
     # TODO: download the model
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
@@ -77,46 +77,41 @@ def prompt_model(
                 "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n"
                 "You only answer questions related to computer science.\n"
                 "For politically sensitive questions, security and privacy issues, "
-                "and other non-computer science questions, you will refuse to answer.\n"
-                "### Instructions:\n"
+                "and other non-computer science questions, you will refuse to answer.\n\n"
+                "### Instructions:\n\n"
                 f"If the input is {input}, what will the following code return?\n"
                 "The return value prediction must be enclosed between [Output] and [/Output] tags.\n"
                 "For example : [Output]prediction[/Output]\n\n"
                 f"{function_signature}\n"
-                f"{entry['canonical_solution']}\n\n"
+                f"{entry['canonical_solution']}\n"
                 "### Response:\n\n"
             )
         else:
             prompt = (
-                "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n"
-                "You only answer questions related to computer science.\n"
-                "For politically sensitive questions, security and privacy issues, "
-                "and other non-computer science questions, you will refuse to answer.\n"
-                "### Instructions:\n"
-                "You are provided with a function description, the implementation of this function, and a few sample input-output pairs.\n"
+                "You are an expert Python programmer. Help solve the following question.\n"
+                "### Instructions:\n\n"
+                "You are provided with a Python function description, the implementation of this function, and an example input-output pair.\n"
                 "Your task is to determine the expected output of the function with the given input.\n"
-                "Reason through the function step by step to arrive at the correct output.\n"
                 "You must return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n"
-                "For example, if the expected output is '1234', you should return [Output]'1234'[/Output].\n"
-                "Immediately end the prompt after [/Output].\n\n"
-                "Function description:\n\n"
-                f"'{entry['prompt']}'\n\n"
-                "Function implementation:\n\n"
+                "For example, if the expected output is '1234', you should return [Output]'1234'[/Output]." 
+                "Format your answer with proper Python semantics based on the data type/structure.\n"
+                "Your output should be a single line in the requested format.\n"
+                "Function description:\n"
+                f"{entry['prompt']}\n"
+                "Function implementation:\n"
                 f"{function_signature}\n"
-                f"{entry['canonical_solution']}"
-                "Here are some example inputs and their expected outputs formatted in the requested response type:\n\n"
+                f"{entry['canonical_solution']}\n"
+                "Here is an example input and output formatted in the requested response type:\n\n"
                 )
 
             for test in all_tests:
                 prompt += f"Input: {test['input']} -> Output: [Output]{test['output']}[/Output]\n"
-
-            prompt += "\nPay close attention to the return types from the example outputs, your answer should match the same data type/structure.\n"
+                break
 
             prompt += "\n### Question:\n"
             prompt += (f"Now, given the function input: {input}, what is the expected output?\n")
-            prompt += "Remember to return your answer for the expected output in the format [Output]answer[/Output].\n"
-            prompt += "IMMEDIATELY end the response afterwards.\n\n"
             prompt += "### Response:\n\n"
+            prompt += "[Output]your_answer[/Output]"
 
         print(f"Prompt for Task_ID {entry['task_id']}:\n\n{prompt}")
 
@@ -126,8 +121,9 @@ def prompt_model(
         # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=1000,
+            max_new_tokens=500,
             do_sample=False,
+            pad_token_id=tokenizer.eos_token_id,
         )
 
         # TODO: process the response and save it to results
