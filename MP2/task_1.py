@@ -111,7 +111,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
             # prompt += (f"Now, given the function input: {input}, what is the expected output?\n\n")
             # prompt += "### Response:\n\n"
 
-            prompt += "Return your answer between [Output] and [/Output] tags."
+            prompt += "Reason about your answer silently.\nReturn your answer like this [Output]<your_answer>[/Output].\n"
 
         print(f"Prompt for Task_ID {entry['task_id']}:\n\n{prompt}")
 
@@ -121,7 +121,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=500,
+            max_new_tokens=100,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
