@@ -26,9 +26,8 @@ def save_file(content, file_path):
         file.write(content)
 
 
-def prompt_model(
-    dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct", vanilla=True
-):
+def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct", vanilla=True):
+
     print("\nBegin task_1.py:\n")
 
     if vanilla:
@@ -88,17 +87,16 @@ def prompt_model(
             )
         else:
             prompt = (
-                "You are an expert Python programmer. Help solve the following question.\n"
+                "You are an expert Python programmer. Help solve the following question.\n\n"
                 "### Instructions:\n\n"
-                "You are provided with a Python function description, the implementation of this function, and an example input-output pair.\n"
+                # "You are provided with a Python function description, the implementation of this function, and an example input-output pair.\n"
+                "You are provided with a Python function and an example input and output.\n"
                 "Your task is to determine the expected output of the function with the given input.\n"
                 "You must return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n"
-                "For example, if the expected output is '1234', you should return [Output]'1234'[/Output]." 
-                "Format your answer with proper Python semantics based on the data type/structure.\n"
-                "Your output should be a single line in the requested format.\n"
-                "Function description:\n"
-                f"{entry['prompt']}\n"
-                "Function implementation:\n"
+                "For example, if the expected output is '1234', you should return [Output]'1234'[/Output].\n\n" 
+                # "Function description:\n"
+                # f"{entry['prompt']}\n"
+                "Pyhton Function:\n"
                 f"{function_signature}\n"
                 f"{entry['canonical_solution']}\n"
                 "Here is an example input and output formatted in the requested response type:\n\n"
@@ -111,7 +109,6 @@ def prompt_model(
             prompt += "\n### Question:\n"
             prompt += (f"Now, given the function input: {input}, what is the expected output?\n")
             prompt += "### Response:\n\n"
-            prompt += "[Output]your_answer[/Output]"
 
         print(f"Prompt for Task_ID {entry['task_id']}:\n\n{prompt}")
 
