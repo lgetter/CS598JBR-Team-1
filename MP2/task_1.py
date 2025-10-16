@@ -18,7 +18,7 @@ def save_file(content, file_path):
 def prompt_model(
     dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct", vanilla=True
 ):
-    print("Begin task_1.py\n\n")
+    print("\nBegin task_1.py\n\n")
 
     if vanilla:
         print(f"Working with {model_name} prompt type vanilla...")
@@ -65,9 +65,9 @@ def prompt_model(
                 "and other non-computer science questions, you will refuse to answer.\n"
                 "### Instructions:\n"
                 f"If the input is ({input}), what will the following code return?\n"
-                "The return value prediction must be enclosed between [Output] and [/Output] tags. For example : [Output]prediction[/Output]\n"
+                "The return value prediction must be enclosed between [Output] and [/Output] tags. For example : [Output]prediction[/Output]\n\n"
                 f"{entry['canonical_solution']}\n\n"
-                "### Response:\n"
+                "### Response:\n\n"
             )
         else:
             prompt = (
@@ -80,12 +80,12 @@ def prompt_model(
                 "Reason through the function step by step to arrive at the correct output.\n"
                 "You must return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n"
                 "For example, if the expected output is True, return [Output]True[/Output].\n"
-                "Immediately end the prompt after [/Output].\n"
-                "Function description:\n"
-                f"'{entry['prompt']}'\n"
-                "Function implementation:\n"
+                "Immediately end the prompt after [/Output].\n\n"
+                "Function description:\n\n"
+                f"'{entry['prompt']}'\n\n"
+                "Function implementation:\n\n"
                 f"{entry['canonical_solution']}"
-                "Here are some example inputs and their expected outputs:\n"
+                "Here are some example inputs and their expected outputs:\n\n"
                 )
 
             for test in all_tests:
@@ -106,7 +106,6 @@ def prompt_model(
             **inputs,
             max_new_tokens=1000,
             do_sample=False,
-            temperature=0.0
         )
 
         # TODO: process the response and save it to results
