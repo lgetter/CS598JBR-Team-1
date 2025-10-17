@@ -87,12 +87,16 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         else:
             prompt = (
                 "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n\n"
-                "### Instructions:\n\n"
+                "### Instructions:\n"
+                "1. Provide a logical description of what the function does.\n"
+                "2. Use the provided input to calculate the output of the function.\n\n"
+
+                "### Rules:\n"
                 "1. Provide the final output value in enclosing [Output][/Output] tags.\n"
                 "2. Respond in 200 words or less.\n"
                 "3. Do not include any additional responses after the final output value.\n"
-                "Note: Some functions may not have a signature. In that case, infer the signature from the provided code.\n"
-                "Only respond with a single final function output value enclosed in [Output][/Output] tags.\n\n"
+                "Note: Some functions may not have a signature. In that case, infer the signature from the provided code.\n\n"
+    
                 "### Function:\n"
                 f"{entry['canonical_solution']}\n\n"
 
@@ -103,7 +107,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 "### Function Input:\n"
                 f"({input})\n\n"
 
-                "### Function Output:\n"
+                "### Response:\n"
                 )
 
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
@@ -115,9 +119,6 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
-
-        # Original response
-        # original_response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         ## Avoid printing the prompt again in the response
         # Get the length of the input tokens
@@ -131,7 +132,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
 
         verdict = compare_values(output, extracted_response)
 
-        print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
+        print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\n{response}\nparsed response:{extracted_response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
         print("========================================\n")
 
         results.append(
