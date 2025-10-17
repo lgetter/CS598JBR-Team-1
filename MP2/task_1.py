@@ -147,11 +147,11 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
 
 def extract_output(response):
     if response is None:
-        return None
+        return "NA"
 
     start = response.find("[Output]")
     if start == -1:
-        return None
+        return "NA"
     start += len("[Output]")
 
     end = response.find("[/Output]", start)
