@@ -95,7 +95,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 "For example, if the calculated output is None, return [Output]None[/Output]\n"
                 # "2. Respond in 200 words or less.\n"
                 "2. Do not include any additional responses after the final output value.\n"
-                "Note: Some functions may not have a signature. In that case, print the code with the implied function signature.\n\n"
+                "Note: Some functions may not have a signature. In that case, print the implied function signature.\n\n"
     
                 "### Function:\n"
                 f"{entry['canonical_solution']}\n\n"
@@ -116,8 +116,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         outputs = model.generate(
             **inputs,
             max_new_tokens=500,
-            do_sample=True,
-            temperature=0.2,
+            do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
 
