@@ -151,8 +151,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         input_length = inputs.input_ids.shape[1]
 
         # Decode only the newly generated tokens
-        new_tokens = outputs[0][input_length:]
-        response = tokenizer.decode(new_tokens, skip_special_tokens=True)
+        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         print(f"Processed response for Task_ID {entry['task_id']}:\n{response}")
         print("========================================\n")
