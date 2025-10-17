@@ -86,30 +86,18 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 "### Instructions:\n\n"
                 "1. List the variable values at each point of the function's execution with the provided input.\n"
                 "2. Provide the final output value in enclosing [Output][/Output] tags.\n"
-                "3. Limit your response to 100 tokens.\n"
-                "4. Ensure that the output is exactly as expected, without any additional text or explanation outside the tags.\n\n"
-                
-                "### Example Function:\n\n"
-                "def example_function(x):\n"
-                "    return x * 2\n\n"
-                
-                "### Example Input:\n"
-                "3\n\n"
-
-                "### Example Response:\n"
-                "At the start, x = 3\n"
-                "Substituting 3 for x,  x * 2 = 6\n"
-                "Final output is [Output]6[/Output]\n\n"
-
-                "### Real Function:\n"
+                "3. Limit your response to 100-150 words.\n"
+                "Note: Some functions may not have a signature. In that case, infer the signature from the provided code.\n"
+                "Only respond with a single final output value enclosed in [Output][/Output] tags.\n\n"
+                "### Function:\n"
                 f"{entry['canonical_solution']}\n\n"
 
                 # "### Sample Input and Output:\n"
                 # f"{example_input} -> {example_output}\n"
                 # f"This would be returned as [Output]{example_output}[/Output]\n\n"
 
-                "### Real Input:\n"
-                f"{input}\n\n"
+                "### Input:\n"
+                f"({input})\n\n"
 
                 "### Response:\n"
                 )
