@@ -103,9 +103,9 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 "Your task is to:\n" \
                 "1. List out the execution steps as consicely as possible using the provided input.\n" \
                 "2. Return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n" \
-                "For example, if the expected output is '1234', output [Output]'1234'[/Output].\n\n"
-                ""
-                "### Function:\n" 
+                "For example, if the expected output is '1234', output [Output]'1234'[/Output].\n\n" \
+                "3. Keep your answer under 1000 characters.\n\n" \
+                "### Function:\n" \
                 f"{entry['canonical_solution']}\n\n"
                 
                 # f"{function_signature}\n"
@@ -118,7 +118,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                     prompt += f"Input: {test['input']} -> Output: [Output]{test['output']}[/Output]\n"
 
             prompt += "\n### Response :\n" \
-                f"Following the steps above, what is the expected output for this input: {input}\n" \
+                f"Following the steps above, what is the expected output for this input: {input}\n\n" \
 
             # prompt += "\n### Question:\n\n"
             # prompt += (f"Now, given the function input: {input}, what is the expected output?\n\n")
