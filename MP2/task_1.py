@@ -94,24 +94,25 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 # "Your task is to determine the expected output of the function with the given input.\n"
                 # "You must return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n"
                 # "For example, if the expected output is '1234', you should return [Output]'1234'[/Output].\n\n" 
-                # "Function description:\n"
+                # "### Function description:\n"
                 # f"{entry['prompt']}\n"
-                # "Pyhton Function:\n"
+                # "### Python Function:\n"
+                # f"{entry['canonical_solution']}\n\n"
                 "### Instructions:\n"
                 "You are provided with a Python function and a list of sample input-output pairs.\n" \
                 "Your task is to:\n" \
-                "1. List out the control flow paths in the function using the provided input.\n" \
-                "2. Determine the expected output of the function with the given input.\n" \
-                "3. Return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n" \
-                "For example, if the expected output is '1234', you should return [Output]'1234'[/Output].\n\n"
+                "1. List out the execution steps as consicely as possible using the provided input.\n" \
+                "2. Return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n" \
+                "For example, if the expected output is '1234', output [Output]'1234'[/Output].\n\n"
+                ""
                 "### Function:\n" 
                 f"{entry['canonical_solution']}\n\n"
                 "### Sample Input-Output Pairs:\n"
 
                 
 
-                # f"What is the output of this Python function with this input: {input}\n"
-                # f"{function_signature}\n"
+                f"What is the output of this Python function with this input: {input}\n"
+                f"{function_signature}\n"
                 
                 # "Here is an example input and output formatted in the requested response type:\n\n"
                 )
@@ -156,15 +157,15 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         print(f"Processed response for Task_ID {entry['task_id']}:\n{response}")
         print("========================================\n")
 
-        response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
+        parsed_response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
 
         verdict = False
-        if output in response:
+        if output in parsed_response:
             verdict = True
 
         print(
             f"Expected output: {output}\n"
-            f"Actual output: {response}\n"
+            f"Actual output: {parsed_response}\n"
             f"Is correct: {verdict}\n"
         )
 
@@ -174,6 +175,8 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 "task_id": entry["task_id"],
                 "prompt": prompt,
                 "response": response,
+                "parsed_response": parsed_response,
+                "expected_output": output,
                 "is_correct": verdict,
             }
         )
