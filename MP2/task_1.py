@@ -60,10 +60,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
     results = []
     for entry in dataset:
         all_tests = test_info[entry["task_id"]]
-        if len(all_tests) >= 2:
-           selected_test = all_tests.pop(-2)
-        else:
-           selected_test = all_tests.pop()
+        selected_test = all_tests.pop()
         input = selected_test["input"]
         output = selected_test["output"]
         example_input = all_tests[0]["input"]
