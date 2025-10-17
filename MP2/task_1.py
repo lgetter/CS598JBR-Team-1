@@ -60,7 +60,10 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
     results = []
     for entry in dataset:
         all_tests = test_info[entry["task_id"]]
-        selected_test = all_tests.pop()
+        if len(all_tests) >= 2:
+           selected_test = all_tests.pop(-2)
+        else:
+           selected_test = all_tests.pop()
         input = selected_test["input"]
         output = selected_test["output"]
         example_input = all_tests[0]["input"]
@@ -86,8 +89,9 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 "### Instructions:\n\n"
                 "1. Provide the final output value in enclosing [Output][/Output] tags.\n"
                 "2. Limit your response to 100-150 words.\n"
+                "3. Do not include any additional explanations, tests, or code snippets in your response.\n"
                 "Note: Some functions may not have a signature. In that case, infer the signature from the provided code.\n"
-                "Only respond with a single final output value enclosed in [Output][/Output] tags.\n\n"
+                "Only respond with a single final function output value enclosed in [Output][/Output] tags.\n\n"
                 "### Function:\n"
                 f"{entry['canonical_solution']}\n\n"
 
