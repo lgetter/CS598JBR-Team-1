@@ -81,7 +81,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 f"If the input is {input}, what will the following code return?\n"
                 "The return value prediction must be enclosed between [Output] and [/Output] tags.\n"
                 "For example : [Output]prediction[/Output]\n\n"
-                # f"{function_signature}\n"
+                f"{function_signature}\n"
                 f"{entry['canonical_solution']}\n"
                 "### Response:\n\n"
             )
@@ -94,37 +94,24 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 # "Your task is to determine the expected output of the function with the given input.\n"
                 # "You must return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n"
                 # "For example, if the expected output is '1234', you should return [Output]'1234'[/Output].\n\n" 
-                # "### Function description:\n"
+                # "Function description:\n"
                 # f"{entry['prompt']}\n"
-                # "### Python Function:\n"
-                # f"{entry['canonical_solution']}\n\n"
-                "### Instructions:\n"
-                "You are provided with a Python function and a list of sample input-output pairs.\n" \
-                "Your task is to:\n" \
-                "1. List out the execution steps as consicely as possible using the provided input.\n" \
-                "2. Return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n" \
-                "For example, if the expected output is '1234', output [Output]'1234'[/Output].\n\n" \
-                "3. Keep your answer under 1000 characters.\n\n" \
-                "### Function:\n" \
-                f"{entry['canonical_solution']}\n\n"
-                
-                # f"{function_signature}\n"
-                # f"What is the output of this Python function with this input: {input}\n"
+                # "Pyhton Function:\n"
+                f"What is the output of this Python function with this input: {input}\n"
+                f"{function_signature}\n"
+                f"{entry['canonical_solution']}\n"
                 # "Here is an example input and output formatted in the requested response type:\n\n"
                 )
-            
-            prompt += "### Sample Input-Output Pairs:\n"
-            for test in all_tests[:3]:
-                    prompt += f"Input: {test['input']} -> Output: [Output]{test['output']}[/Output]\n"
 
-            prompt += "\n### Response :\n" \
-                f"Following the steps above, what is the expected output for this input: {input}\n\n" \
+            # for test in all_tests:
+            #     prompt += f"Input: {test['input']} -> Output: [Output]{test['output']}[/Output]\n"
+            #     break
 
             # prompt += "\n### Question:\n\n"
             # prompt += (f"Now, given the function input: {input}, what is the expected output?\n\n")
             # prompt += "### Response:\n\n"
 
-            # prompt += "Reason about your answer silently.\nReturn your answer like this [Output]<your_answer>[/Output].\n"
+            prompt += "Reason about your answer silently.\nReturn your answer like this [Output]<your_answer>[/Output].\n"
 
         print(f"Prompt for Task_ID {entry['task_id']}:\n\n{prompt}")
 
@@ -134,7 +121,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=500,
+            max_new_tokens=100,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
@@ -142,21 +129,28 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         # TODO: process the response and save it to results
 
         # Original response
-        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        # response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
+        ## Avoid printing the prompt again in the response
+        # Get the length of the input tokens
+        input_length = inputs.input_ids.shape[1]
+
+        # Decode only the newly generated tokens
+        new_tokens = outputs[0][input_length:]
+        response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
         print(f"Processed response for Task_ID {entry['task_id']}:\n{response}")
         print("========================================\n")
 
-        parsed_response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
+        response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
 
         verdict = False
-        if output in parsed_response:
+        if output in response:
             verdict = True
 
         print(
             f"Expected output: {output}\n"
-            f"Actual output: {parsed_response}\n"
+            f"Actual output: {response}\n"
             f"Is correct: {verdict}\n"
         )
 
@@ -166,8 +160,6 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 "task_id": entry["task_id"],
                 "prompt": prompt,
                 "response": response,
-                "parsed_response": parsed_response,
-                "expected_output": output,
                 "is_correct": verdict,
             }
         )
