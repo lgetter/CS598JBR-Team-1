@@ -87,14 +87,15 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 "### Instructions:\n"
                 # "1. Provide a logical description of what the function does, using the provided input.\n"
                 "1. Use the provided input to calculate the output of the function.\n"
-                "2. Explain why the output is correct based on the function's logic in two sentences.\n"
-                "3. Update the final answer if necessary after the explanation.\n\n"
+                # "2. Explain why the output is correct based on the function's logic in two sentences.\n"
+                # "3. Update the final answer if necessary after the explanation.\n\n"
 
                 "### Rules:\n"
                 "1. Provide the final output value in enclosing [Output][/Output] tags.\n"
-                "2. Respond in 200 words or less.\n"
-                "3. Do not include any additional responses after the final output value.\n"
-                "Note: Some functions may not have a signature. In that case, infer the signature from the provided code.\n\n"
+                "For example, if the calculated output is None, return [Output]None[/Output]\n"
+                # "2. Respond in 200 words or less.\n"
+                "2. Do not include any additional responses after the final output value.\n"
+                "Note: Some functions may not have a signature. In that case, state the assumed signature from the provided code.\n\n"
     
                 "### Function:\n"
                 f"{entry['canonical_solution']}\n\n"
@@ -165,8 +166,8 @@ def extract_output(response):
     end = response.find("[/Output]", start)
     if end == -1:
         return response[start:].strip()
-    
-    return response[start:end].strip()
+
+    return sanitize_value(response[start:end].strip())
 
 def sanitize_value(s):
     s = str(s)
