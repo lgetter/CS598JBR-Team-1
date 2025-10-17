@@ -84,9 +84,8 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         else:
             prompt = (
                 "### Instructions:\n\n"
-                "1. List the variable values at each point of the function's execution with the provided input.\n"
-                "2. Provide the final output value in enclosing [Output][/Output] tags.\n"
-                "3. Limit your response to 100-150 words.\n"
+                "1. Provide the final output value in enclosing [Output][/Output] tags.\n"
+                "2. Limit your response to 100-150 words.\n"
                 "Note: Some functions may not have a signature. In that case, infer the signature from the provided code.\n"
                 "Only respond with a single final output value enclosed in [Output][/Output] tags.\n\n"
                 "### Function:\n"
@@ -107,7 +106,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=500,
+            max_new_tokens=100,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
