@@ -136,7 +136,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=100,
+            max_new_tokens=500,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
@@ -144,14 +144,8 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         # TODO: process the response and save it to results
 
         # Original response
-        # response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-        ## Avoid printing the prompt again in the response
-        # Get the length of the input tokens
-        input_length = inputs.input_ids.shape[1]
-
-        # Decode only the newly generated tokens
         response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
 
         print(f"Processed response for Task_ID {entry['task_id']}:\n{response}")
         print("========================================\n")
