@@ -107,7 +107,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=300,
+            max_new_tokens=1024,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
@@ -124,13 +124,12 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
         extracted_response = extract_output(response)
-        print("========================================\n")
 
-        verdict = False
-        if output in extracted_response:
-            verdict = True
+        verdict = compare_values(output, extracted_response)
 
         print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{original_response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
+        print("========================================\n")
+        
         results.append(
             {
                 "task_id": entry["task_id"],
@@ -144,6 +143,12 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         )
 
     return results
+
+def compare_values(expected, predicted):
+    expected_sanitized = sanitize_value(expected)
+    predicted_sanitized = sanitize_value(predicted)
+
+    return expected_sanitized == predicted_sanitized
 
 def extract_output(response):
     if response is None:
@@ -159,6 +164,18 @@ def extract_output(response):
         return response[start:].strip()
     
     return response[start:end].strip()
+
+def sanitize_value(s):
+    s = s.strip()
+    if s.startswith(("'", '"')):
+        s = s[1:]
+    if s.endswith(("'", '"')):
+        s = s[:-1]
+    if s.startswith("[]"):
+        s = s[1:]
+    if s.endswith("]"):
+        s = s[:-1]
+    return s
 
 def read_jsonl(file_path):
     dataset = []
