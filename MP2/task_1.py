@@ -107,20 +107,18 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 ""
                 "### Function:\n" 
                 f"{entry['canonical_solution']}\n\n"
-                "### Sample Input-Output Pairs:\n"
-
                 
-
-                f"What is the output of this Python function with this input: {input}\n"
-                f"{function_signature}\n"
-                
+                # f"{function_signature}\n"
+                # f"What is the output of this Python function with this input: {input}\n"
                 # "Here is an example input and output formatted in the requested response type:\n\n"
                 )
             
+            prompt += "### Sample Input-Output Pairs:\n"
             for test in all_tests[:3]:
                     prompt += f"Input: {test['input']} -> Output: [Output]{test['output']}[/Output]\n"
 
-            prompt += "\n### Response:\n"
+            prompt += "\n### Response :\n" \
+                f"Following the steps above, what is the expected output for this input: {input}\n" \
 
             # prompt += "\n### Question:\n\n"
             # prompt += (f"Now, given the function input: {input}, what is the expected output?\n\n")
