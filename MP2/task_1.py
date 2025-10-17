@@ -86,10 +86,11 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
             )
         else:
             prompt = (
+                "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n\n"
                 "### Instructions:\n\n"
                 "1. Provide the final output value in enclosing [Output][/Output] tags.\n"
-                "2. Limit your response to 100-150 words.\n"
-                "3. Do not include any additional explanations, tests, or code snippets in your response.\n"
+                "2. Respond in 200 words or less.\n"
+                "3. Do not include any additional responses after the final output value.\n"
                 "Note: Some functions may not have a signature. In that case, infer the signature from the provided code.\n"
                 "Only respond with a single final function output value enclosed in [Output][/Output] tags.\n\n"
                 "### Function:\n"
@@ -99,10 +100,10 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 # f"{example_input} -> {example_output}\n"
                 # f"This would be returned as [Output]{example_output}[/Output]\n\n"
 
-                "### Input:\n"
+                "### Function Input:\n"
                 f"({input})\n\n"
 
-                "### Response:\n"
+                "### Function Output:\n"
                 )
 
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
