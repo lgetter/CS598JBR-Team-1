@@ -81,7 +81,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 f"If the input is {input}, what will the following code return?\n"
                 "The return value prediction must be enclosed between [Output] and [/Output] tags.\n"
                 "For example : [Output]prediction[/Output]\n\n"
-                f"{function_signature}\n"
+                # f"{function_signature}\n"
                 f"{entry['canonical_solution']}\n"
                 "### Response:\n\n"
             )
@@ -97,15 +97,29 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 # "Function description:\n"
                 # f"{entry['prompt']}\n"
                 # "Pyhton Function:\n"
-                f"What is the output of this Python function with this input: {input}\n"
-                f"{function_signature}\n"
-                f"{entry['canonical_solution']}\n"
+                "### Instructions:\n"
+                "You are provided with a Python function and a list of sample input-output pairs.\n" \
+                "Your task is to:\n" \
+                "1. List out the control flow paths in the function using the provided input.\n" \
+                "2. Determine the expected output of the function with the given input.\n" \
+                "3. Return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n" \
+                "For example, if the expected output is '1234', you should return [Output]'1234'[/Output].\n\n"
+                "### Function:\n" 
+                f"{entry['canonical_solution']}\n\n"
+                "### Sample Input-Output Pairs:\n"
+
+                for test in all_tests[:3]:
+                    prompt += f"Input: {test['input']} -> Output: [Output]{test['output']}[/Output]\n"
+
+                prompt += "\n### Response:\n"
+
+                # f"What is the output of this Python function with this input: {input}\n"
+                # f"{function_signature}\n"
+                
                 # "Here is an example input and output formatted in the requested response type:\n\n"
                 )
 
-            # for test in all_tests:
-            #     prompt += f"Input: {test['input']} -> Output: [Output]{test['output']}[/Output]\n"
-            #     break
+           
 
             # prompt += "\n### Question:\n\n"
             # prompt += (f"Now, given the function input: {input}, what is the expected output?\n\n")
