@@ -35,10 +35,8 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
     else:
         print(f"Working with model = {model_name}, prompt type = crafted...")
 
-    # TODO: download the model
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 
-    # # TODO: load the model with quantization
     quant_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_compute_dtype=torch.bfloat16,
@@ -65,10 +63,9 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         selected_test = all_tests.pop()
         input = selected_test["input"]
         output = selected_test["output"]
+        example_input = all_tests[0]["input"]
+        example_output = all_tests[0]["output"]
 
-        function_signature = extract_function_signature(entry['prompt'])
-
-        # TODO: create prompt for the model
         # Tip : Use can use any data from the dataset to create
         #       the prompt including prompt, canonical_solution, test, etc.
         if vanilla:
@@ -81,55 +78,42 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 f"If the input is {input}, what will the following code return?\n"
                 "The return value prediction must be enclosed between [Output] and [/Output] tags.\n"
                 "For example : [Output]prediction[/Output]\n\n"
-                f"{function_signature}\n"
                 f"{entry['canonical_solution']}\n"
                 "### Response:\n\n"
             )
         else:
             prompt = (
-                # "You are an expert Python programmer. Help solve the following question.\n\n"
-                # "### Instructions:\n\n"
-                # "You are provided with a Python function description, the implementation of this function, and an example input-output pair.\n"
-                # "You are provided with a Python function and an example input and output.\n"
-                # "Your task is to determine the expected output of the function with the given input.\n"
-                # "You must return the expected output of the provided function in enclosing [Output] and [/Output] tags as the final output.\n"
-                # "For example, if the expected output is '1234', you should return [Output]'1234'[/Output].\n\n" 
-                # "Function description:\n"
-                # f"{entry['prompt']}\n"
-                # "Pyhton Function:\n"
-                f"What is the output of this Python function with this input: {input}\n"
-                f"{function_signature}\n"
-                f"{entry['canonical_solution']}\n"
-                # "Here is an example input and output formatted in the requested response type:\n\n"
+                "### Instructions:\n\n"
+                "1. List out the logical steps to compute the output of the given Python function when provided with the specified input.\n"
+                "2. After reasoning through the steps, provide the final output value in enclosing [Output][/Output] tags.\n"
+                "3. Limit your response to 100 tokens.\n"
+                "4. Ensure that the output is exactly as expected, without any additional text or explanation outside the tags.\n\n"
+                
+                "### Function:\n"
+                f"{entry['canonical_solution']}\n\n"
+
+                "### Sample Input and Output:\n"
+                f"{example_input} -> {example_output}\n"
+                f"This would be returned as [Output]{example_output}[/Output]\n\n"
+
+                "### Input:\n"
+                f"{input}\n\n"
+
+                "### Response:\n"
                 )
 
-            # for test in all_tests:
-            #     prompt += f"Input: {test['input']} -> Output: [Output]{test['output']}[/Output]\n"
-            #     break
-
-            # prompt += "\n### Question:\n\n"
-            # prompt += (f"Now, given the function input: {input}, what is the expected output?\n\n")
-            # prompt += "### Response:\n\n"
-
-            prompt += "Reason about your answer silently.\nReturn your answer like this [Output]<your_answer>[/Output].\n"
-
-        print(f"Prompt for Task_ID {entry['task_id']}:\n\n{prompt}")
-
-        # TODO: prompt the model and get the response
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
         # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=100,
+            max_new_tokens=200,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
 
-        # TODO: process the response and save it to results
-
         # Original response
-        # response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        original_response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         ## Avoid printing the prompt again in the response
         # Get the length of the input tokens
@@ -139,38 +123,42 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         new_tokens = outputs[0][input_length:]
         response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
-        print(f"Processed response for Task_ID {entry['task_id']}:\n{response}")
+        extracted_response = extract_output(response)
         print("========================================\n")
 
-        response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
-
         verdict = False
-        if output in response:
+        if output in extracted_response:
             verdict = True
-
-        print(
-            f"Expected output: {output}\n"
-            f"Actual output: {response}\n"
-            f"Is correct: {verdict}\n"
-        )
 
         # print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
         results.append(
             {
                 "task_id": entry["task_id"],
                 "prompt": prompt,
-                "response": response,
+                "original_response": original_response,
+                "response_without_prompt": response,
+                "extracted_response": extracted_response,
+                "expected_response": output,
                 "is_correct": verdict,
             }
         )
 
     return results
 
+def extract_output(response):
+    if response is None:
+        return None
 
-def extract_random_test(tests):
-    selected_test = random.choice(tests)
-    return selected_test["input"], selected_test["output"]
+    start = response.find("[Output]")
+    if start == -1:
+        return None
+    start += len("[Output]")
 
+    end = response.find("[/Output]", start)
+    if end == -1:
+        return response[start:].strip()
+    
+    return response[start:end].strip()
 
 def read_jsonl(file_path):
     dataset = []
