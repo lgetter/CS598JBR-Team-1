@@ -84,19 +84,31 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         else:
             prompt = (
                 "### Instructions:\n\n"
-                "1. List out the logical steps to compute the output of the given Python function when provided with the specified input.\n"
-                "2. After reasoning through the steps, provide the final output value in enclosing [Output][/Output] tags.\n"
+                "1. List the variable values at each point of the function's execution with the provided input.\n"
+                "2. Provide the final output value in enclosing [Output][/Output] tags.\n"
                 "3. Limit your response to 100 tokens.\n"
                 "4. Ensure that the output is exactly as expected, without any additional text or explanation outside the tags.\n\n"
                 
-                "### Function:\n"
+                "### Example Function:\n\n"
+                "def example_function(x):\n"
+                "    return x * 2\n\n"
+                
+                "### Example Input:\n"
+                "3\n\n"
+
+                "### Example Response:\n"
+                "At the start, x = 3\n"
+                "Substituting 3 for x,  x * 2 = 6\n"
+                "Final output is [Output]6[/Output]\n\n"
+
+                "### Real Function:\n"
                 f"{entry['canonical_solution']}\n\n"
 
                 # "### Sample Input and Output:\n"
                 # f"{example_input} -> {example_output}\n"
                 # f"This would be returned as [Output]{example_output}[/Output]\n\n"
 
-                "### Input:\n"
+                "### Real Input:\n"
                 f"{input}\n\n"
 
                 "### Response:\n"
@@ -107,13 +119,13 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=1024,
+            max_new_tokens=500,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
 
         # Original response
-        original_response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        # original_response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         ## Avoid printing the prompt again in the response
         # Get the length of the input tokens
@@ -127,15 +139,14 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
 
         verdict = compare_values(output, extracted_response)
 
-        print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{original_response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
+        print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
         print("========================================\n")
-        
+
         results.append(
             {
                 "task_id": entry["task_id"],
                 "prompt": prompt,
-                "original_response": original_response,
-                "response_without_prompt": response,
+                "response": response,
                 "extracted_response": extracted_response,
                 "expected_response": output,
                 "is_correct": verdict,
@@ -166,6 +177,7 @@ def extract_output(response):
     return response[start:end].strip()
 
 def sanitize_value(s):
+    s = str(s)
     s = s.strip()
     if s.startswith(("'", '"')):
         s = s[1:]
