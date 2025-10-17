@@ -88,8 +88,10 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
             prompt = (
                 "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n\n"
                 "### Instructions:\n"
-                "1. Provide a logical description of what the function does.\n"
-                "2. Use the provided input to calculate the output of the function.\n\n"
+                # "1. Provide a logical description of what the function does, using the provided input.\n"
+                "1. Use the provided input to calculate the output of the function.\n"
+                "2. Explain why the output is correct based on the function's logic in two sentences.\n"
+                "3. Update the final answer if necessary after the explanation.\n\n"
 
                 "### Rules:\n"
                 "1. Provide the final output value in enclosing [Output][/Output] tags.\n"
