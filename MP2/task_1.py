@@ -92,9 +92,9 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
                 "### Function:\n"
                 f"{entry['canonical_solution']}\n\n"
 
-                "### Sample Input and Output:\n"
-                f"{example_input} -> {example_output}\n"
-                f"This would be returned as [Output]{example_output}[/Output]\n\n"
+                # "### Sample Input and Output:\n"
+                # f"{example_input} -> {example_output}\n"
+                # f"This would be returned as [Output]{example_output}[/Output]\n\n"
 
                 "### Input:\n"
                 f"{input}\n\n"
@@ -107,7 +107,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=200,
+            max_new_tokens=300,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
@@ -130,7 +130,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         if output in extracted_response:
             verdict = True
 
-        # print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
+        print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{original_response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
         results.append(
             {
                 "task_id": entry["task_id"],
