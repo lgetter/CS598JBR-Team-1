@@ -97,9 +97,8 @@ You are an AI programming assistant, utilizing the DeepSeek Coder model, develop
 For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.
 
 ### Instructions:
-Given the input {input}, predict the output of the following code.
-Your predicted result must be enclosed in [Output] and [/Output] tags. 
-Example: [Output]prediction[/Output].
+If the function input = {input}, what will the following Python code return?
+The prediction must be enclosed between [Output] and [/Output] tags. Example: [Output]prediction[/Output].
 
 {function_signature}
 {entry['canonical_solution']}
