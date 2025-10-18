@@ -99,7 +99,6 @@ For politically sensitive questions, security and privacy issues, and other non-
 ### Instructions:
 If the input is {input}, what will the following code return?
 The return value prediction must be enclosed between [Output] and [/Output] tags. For example: [Output]prediction[/Output].
-Reason step by step to solve the problem.
 
 {function_signature}
 {entry['canonical_solution']}
