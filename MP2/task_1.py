@@ -87,36 +87,22 @@ The return value prediction must be enclosed between [Output] and [/Output] tags
 ### Response:
 """)
         else:
-            selected_example = all_tests.pop()
-            example_input = selected_example["input"]
-            example_output = selected_example["output"]
+            # selected_example = all_tests.pop()
+            # example_input = selected_example["input"]
+            # example_output = selected_example["output"]
 
             prompt = (
 f"""
-You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science.
-For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.
-
 ### Instructions:
-Execute this code and predict the return value.
+Predict the return value of this code for input: {input}
 
 {function_signature}
 {entry['canonical_solution']}
 
-Example: Input {example_input} returns {example_output}
-
-Target: Input {input}
-
-Trace carefully:
-- Use the EXACT input: {input} (not the example)
-- Execute line-by-line
-- Check range() stops before end value
-- Verify list slicing: [::2] is indices 0,2,4... and [1::2] is indices 1,3,5...
-- Double-check min/max operations
-
-Respond with ONLY: [Output]exact_value[/Output]
+Return only: [Output]value[/Output]
 
 ### Response:
-[Output]""")
+""")
 
         print(f"({i}/20) Prompt for Task_ID {entry['task_id']}:\n{prompt}")
 
@@ -126,7 +112,7 @@ Respond with ONLY: [Output]exact_value[/Output]
         # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=1000,
+            max_new_tokens=500,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
