@@ -31,9 +31,9 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
     print("\nBegin task_1.py:\n")
 
     if vanilla:
-        print(f"Working with model = {model_name}\nPrompt type = vanilla")
+        print(f"Working with model = {model_name}\nPrompt type = vanilla\n")
     else:
-        print(f"Working with model = {model_name}\nPrompt type = crafted")
+        print(f"Working with model = {model_name}\nPrompt type = crafted\n")
 
     # TODO: download the model
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
@@ -55,7 +55,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
     # map from task_id to test cases
     test_info = json.load(open("selected_humaneval_tests_all.json", "r"))
 
-    print("\nBegin HumanEval prompting tests\n")
+    print("\nBegin HumanEval prompting tests:\n")
 
     print("========================================\n")
 
@@ -80,7 +80,7 @@ For politically sensitive questions, security and privacy issues, and other non-
 
 ### Instructions:
 If the input is {input}, what will the following code return?
-The return value prediction must be enclosed between [Output] and [/Output] tags. For example: [Output]prediction[/Output]
+The return value prediction must be enclosed between [Output] and [/Output] tags. For example: [Output]prediction[/Output].
 
 {function_signature}
 {entry['canonical_solution']}
@@ -140,7 +140,8 @@ The return value prediction must be enclosed between [Output] and [/Output] tags
         new_tokens = outputs[0][input_length:]
         response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
-        print(f"({i}/20) Response for Task_ID {entry['task_id']}:\n{response}")
+        # print(f"({i}/20) Response for Task_ID {entry['task_id']}:\n{response}")
+        print(f"\n{response}")
 
         response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
 
