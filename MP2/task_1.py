@@ -93,14 +93,16 @@ The return value prediction must be enclosed between [Output] and [/Output] tags
 
             prompt = (
 f"""
+You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science.
+For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.
+
 ### Instructions:
-Predict the return value of this code for input: {input}
+Given the input {input}, predict the output of the following code.
+Your predicted result must be enclosed in [Output] and [/Output] tags. 
+Example: [Output]prediction[/Output].
 
 {function_signature}
 {entry['canonical_solution']}
-
-Return only: [Output]value[/Output]
-
 ### Response:
 """)
 
