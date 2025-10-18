@@ -97,8 +97,9 @@ You are an AI programming assistant, utilizing the DeepSeek Coder model, develop
 For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.
 
 ### Instructions:
-What will the following Python function return when the input parameters = {input}
-Your prediction must be formatted like: [Output]prediction[/Output]
+If the input is {input}, what will the following Python function return?
+The return value prediction must be enclosed between [Output] and [/Output] tags. For example: [Output]prediction[/Output].
+Be careful with modulo (%), inequalities, range functions, and orders of operation.
 
 {function_signature}
 {entry['canonical_solution']}
