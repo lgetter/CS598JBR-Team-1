@@ -31,9 +31,9 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
     print("\nBegin task_1.py:\n")
 
     if vanilla:
-        print(f"Working with model = {model_name}, prompt type = vanilla...")
+        print(f"Working with model = {model_name}\nPrompt type = vanilla")
     else:
-        print(f"Working with model = {model_name}, prompt type = crafted...")
+        print(f"Working with model = {model_name}\nPrompt type = crafted")
 
     # TODO: download the model
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
@@ -60,6 +60,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
     print("========================================\n")
 
     results = []
+    i = 1
     for entry in dataset:
         all_tests = test_info[entry["task_id"]]
         selected_test = all_tests.pop()
@@ -73,18 +74,18 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         #       the prompt including prompt, canonical_solution, test, etc.
         if vanilla:
             prompt = (
-                "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company.\n"
-                "You only answer questions related to computer science.\n"
-                "For politically sensitive questions, security and privacy issues, "
-                "and other non-computer science questions, you will refuse to answer.\n\n"
-                "### Instructions:\n\n"
-                f"If the input is {input}, what will the following code return?\n"
-                "The return value prediction must be enclosed between [Output] and [/Output] tags.\n"
-                "For example : [Output]prediction[/Output]\n\n"
-                f"{function_signature}\n"
-                f"{entry['canonical_solution']}\n"
-                "### Response:\n\n"
-            )
+f"""
+You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science.
+For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.
+
+### Instructions:
+If the input is {input}, what will the following code return?
+The return value prediction must be enclosed between [Output] and [/Output] tags. For example: [Output]prediction[/Output]
+
+{function_signature}
+{entry['canonical_solution']}
+### Response:
+""")
         else:
             prompt = (
                 # "You are an expert Python programmer. Help solve the following question.\n\n"
@@ -113,7 +114,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
 
             prompt += "Reason about your answer silently.\nReturn your answer like this [Output]<your_answer>[/Output].\n"
 
-        print(f"Prompt for Task_ID {entry['task_id']}:\n\n{prompt}")
+        print(f"({i}/20) Prompt for Task_ID {entry['task_id']}:\n{prompt}")
 
         # TODO: prompt the model and get the response
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
@@ -121,7 +122,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=100,
+            max_new_tokens=500,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
@@ -139,8 +140,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
         new_tokens = outputs[0][input_length:]
         response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
-        print(f"Processed response for Task_ID {entry['task_id']}:\n{response}")
-        print("========================================\n")
+        print(f"({i}/20) Response for Task_ID {entry['task_id']}:\n{response}")
 
         response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
 
@@ -153,6 +153,10 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
             f"Actual output: {response}\n"
             f"Is correct: {verdict}\n"
         )
+
+        print("========================================\n")
+
+        i += 1
 
         # print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nexpected response:\n{output}\nis_correct:\n{verdict}")
         results.append(
