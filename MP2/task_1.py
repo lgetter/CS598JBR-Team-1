@@ -63,7 +63,7 @@ def prompt_model(dataset, model_name="deepseek-ai/deepseek-coder-6.7b-instruct",
     i = 1
     for entry in dataset:
         all_tests = test_info[entry["task_id"]]
-        selected_test = all_tests.pop()
+        selected_test = all_tests.pop(0)
         input = selected_test["input"]
         output = selected_test["output"]
 
@@ -87,24 +87,30 @@ The return value prediction must be enclosed between [Output] and [/Output] tags
 ### Response:
 """)
         else:
-            # selected_example = all_tests.pop()
-            # example_input = selected_example["input"]
-            # example_output = selected_example["output"]
-
             prompt = (
 f"""
-You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science.
-For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.
+You are an expert Python programmer. Analyze the given Python function and predict its output for the specified input.
 
 ### Instructions:
-If the input is {input}, what will the following Python function return?
-The return value prediction must be enclosed between [Output] and [/Output] tags. For example: [Output]prediction[/Output].
-Be careful with modulo (%), inequalities, range functions, and orders of operation.
+Predict the return value of this Python function with the given input.
 
-{function_signature}
+{entry['prompt']}
 {entry['canonical_solution']}
-### Response:
+Important:
+1. Analyze the function logic carefully
+2. Trace through the code execution step by step
+3. Consider edge cases and data types
+4. Your prediction must exactly match the expected output format
+5. Enclose your final prediction between [Output] and [/Output] tags. For example: [Output]prediction[/Output].
+
+Validated example inputs and outputs for the given Python function:
 """)
+            j = 1
+            for test in all_tests:
+                    prompt += f"Example #{j}: Input = {test['input']} -> Output = {test['output']}\n"
+            
+            prompt += (f"Now, given the function input: {input}, what is the expected output?\n\n")
+            prompt += "### Response:\n"
 
         print(f"({i}/20) Prompt for Task_ID {entry['task_id']}:\n{prompt}")
 
@@ -114,7 +120,7 @@ Be careful with modulo (%), inequalities, range functions, and orders of operati
         # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=500,
+            max_new_tokens=1000,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )

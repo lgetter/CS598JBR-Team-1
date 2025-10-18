@@ -7,6 +7,17 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 # Please finish all TODOs in this file for MP2;
 #####################################################
 
+def extract_function_signature(prompt_content):
+    """
+    Extracts the function signature (including imports/type hints) from the prompt.
+    The extraction stops exactly at the colon that ends the function definition line(s).
+    """
+
+    # Find the end of the function signature
+    end_index = prompt_content.find(':\n')
+    
+    return prompt_content[0:end_index+1]
+
 def save_file(content, file_path):
     with open(file_path, 'w') as file:
         file.write(content)
@@ -15,14 +26,112 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
     print(f"Working with {model_name} prompt type {vanilla}...")
     
     # TODO: download the model
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+
     # TODO: load the model with quantization
+    quant_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",
+    )
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        trust_remote_code=True,
+        device_map="auto",
+        quantization_config=quant_config,
+    )
     
     results = []
     for entry in dataset:
+        all_tests = test_info[entry["task_id"]]
+        selected_test = all_tests.pop()
+        input = selected_test["input"]
+        output = selected_test["output"]
+
+        function_signature = extract_function_signature(entry['prompt'])
+
         # TODO: create prompt for the model
-        # Tip : Use can use any data from the dataset to create 
+        # Tip : Use can use any data from the dataset to create
         #       the prompt including prompt, canonical_solution, test, etc.
-        prompt = ""
+        if vanilla:
+            prompt = (
+f"""
+You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science.
+For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.
+
+### Instructions:
+Generate a pytest test suite for the following code.
+Only write unit tests in the output and nothing else.
+
+{function_signature}
+{entry['canonical_solution']}
+### Response:
+""")
+        else:
+            # selected_example = all_tests.pop()
+            # example_input = selected_example["input"]
+            # example_output = selected_example["output"]
+
+            prompt = (
+f"""
+You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science.
+For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.
+
+### Instructions:
+If the input is {input}, what will the following Python function return?
+The return value prediction must be enclosed between [Output] and [/Output] tags. For example: [Output]prediction[/Output].
+Be careful with modulo (%), inequalities, range functions, and orders of operation.
+
+{function_signature}
+{entry['canonical_solution']}
+### Response:
+""")
+
+        print(f"({i}/20) Prompt for Task_ID {entry['task_id']}:\n{prompt}")
+
+        # TODO: prompt the model and get the response
+        inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+
+        # Original outputs
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=500,
+            do_sample=False,
+            pad_token_id=tokenizer.eos_token_id,
+        )
+
+        # TODO: process the response and save it to results
+
+        # Original response
+        # response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+        ## Avoid printing the prompt again in the response
+        # Get the length of the input tokens
+        input_length = inputs.input_ids.shape[1]
+
+        # Decode only the newly generated tokens
+        new_tokens = outputs[0][input_length:]
+        response = tokenizer.decode(new_tokens, skip_special_tokens=True)
+
+        # print(f"({i}/20) Response for Task_ID {entry['task_id']}:\n{response}")
+        print(f"{response}")
+
+        response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
+
+        verdict = False
+        if output in response:
+            verdict = True
+
+        print(
+            f"Expected output: {output}\n"
+            f"Actual output: {response}\n"
+            f"Is correct: {verdict}\n"
+        )
+
+        print("========================================\n")
+
+        i += 1
         
         # TODO: prompt the model and get the response
         response = ""
@@ -31,6 +140,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         coverage = ""
 
         print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\ncoverage:\n{coverage}")
+        print("========================================\n")
         results.append({
             "task_id": entry["task_id"],
             "prompt": prompt,
