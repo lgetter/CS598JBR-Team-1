@@ -97,17 +97,26 @@ You are an AI programming assistant, utilizing the DeepSeek Coder model, develop
 For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.
 
 ### Instructions:
-If the input is {input}, what will the following code return?
-The return value prediction must be enclosed between [Output] and [/Output] tags. For example: [Output]prediction[/Output].
+Execute this code and predict the return value.
 
 {function_signature}
 {entry['canonical_solution']}
-Here is an example input and output:
 
-Input: {example_input} -> Output: {example_output}
+Example: Input {example_input} returns {example_output}
+
+Target: Input {input}
+
+Trace carefully:
+- Use the EXACT input: {input} (not the example)
+- Execute line-by-line
+- Check range() stops before end value
+- Verify list slicing: [::2] is indices 0,2,4... and [1::2] is indices 1,3,5...
+- Double-check min/max operations
+
+Respond with ONLY: [Output]exact_value[/Output]
 
 ### Response:
-""")
+[Output]""")
 
         print(f"({i}/20) Prompt for Task_ID {entry['task_id']}:\n{prompt}")
 
