@@ -119,9 +119,9 @@ Validated example inputs and outputs for the given Python function:
 
         # Original outputs
         if vanilla:
-            max_tokens = 150
+            max_tokens = 400
         else:
-            max_tokens = 300
+            max_tokens = 400
 
         outputs = model.generate(
             **inputs,
