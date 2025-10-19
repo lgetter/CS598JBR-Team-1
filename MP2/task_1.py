@@ -97,11 +97,10 @@ Predict the return value of this Python function with the given input.
 {entry['prompt']}
 {entry['canonical_solution']}
 Important:
-1. Analyze the function logic carefully
-2. Trace through the code execution step by step
-3. Consider edge cases and data types
-4. Your prediction must exactly match the expected output format
-5. Enclose your final prediction between [Output] and [/Output] tags. For example: [Output]prediction[/Output].
+1. Reason through the answer step by step
+2. Consider edge cases and data types
+3. Your prediction must exactly match the expected output format
+4. Enclose your final prediction between [Output] and [/Output] tags. For example: [Output]prediction[/Output].
 
 Validated example inputs and outputs for the given Python function:
 """)
@@ -110,7 +109,7 @@ Validated example inputs and outputs for the given Python function:
                     prompt += f"Example #{j}: Input = {test['input']} -> Output = {test['output']}\n"
                     j += 1
             
-            prompt += (f"\nNow, predicted the expected output with input = {input}\n\n")
+            prompt += (f"\nNow, predict the expected output with input = {input}\n\n")
             prompt += "### Response:\n\n"
 
         print(f"({i}/20) Prompt for Task_ID {entry['task_id']}:\n{prompt}")
@@ -120,9 +119,9 @@ Validated example inputs and outputs for the given Python function:
 
         # Original outputs
         if vanilla:
-            max_tokens = 100
+            max_tokens = 150
         else:
-            max_tokens = 500
+            max_tokens = 300
 
         outputs = model.generate(
             **inputs,
