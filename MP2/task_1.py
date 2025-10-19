@@ -108,9 +108,10 @@ Validated example inputs and outputs for the given Python function:
             j = 1
             for test in all_tests:
                     prompt += f"Example #{j}: Input = {test['input']} -> Output = {test['output']}\n"
+                    j += 1
             
-            prompt += (f"Now, given the function input: {input}, what is the expected output?\n\n")
-            prompt += "### Response:\n"
+            prompt += (f"\nNow, predicted the expected output with input = {input}\n\n")
+            prompt += "### Response:\n\n"
 
         print(f"({i}/20) Prompt for Task_ID {entry['task_id']}:\n{prompt}")
 
@@ -118,9 +119,14 @@ Validated example inputs and outputs for the given Python function:
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
         # Original outputs
+        if vanilla:
+            max_tokens = 100
+        else:
+            max_tokens = 500
+
         outputs = model.generate(
             **inputs,
-            max_new_tokens=1000,
+            max_new_tokens=max_tokens,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
