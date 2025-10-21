@@ -198,6 +198,7 @@ For politically sensitive questions, security and privacy issues, and other non-
             print(f"Error running tests for {task_id}: {str(e)}")
         
         #print(f"Task_ID {task_id}:\ncoverage: {coverage}")
+        coverage = "placeholder"
         print("========================================\n")
         
         results.append({
