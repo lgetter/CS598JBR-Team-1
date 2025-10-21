@@ -72,7 +72,7 @@ For politically sensitive questions, security and privacy issues, and other non-
 
 ### Instructions:
 Generate a pytest test suite for the following code.
-Only write unit tests in the response and nothing else.
+Only write unit tests in the output and nothing else. Do not include any explanations or comments. The response should just be executable pytest code.
 
 {function_signature}
 {entry['canonical_solution']}
@@ -92,7 +92,7 @@ For politically sensitive questions, security and privacy issues, and other non-
 Generate a comprehensive pytest test suite for the following code with maximum code coverage. 
 
 Requirements:
-1. Generate at least 15-20 test cases to cover all possible execution paths
+1. Generate at least 10-15 test cases to cover all possible execution paths
 2. Include tests for:
    - Normal/typical inputs
    - Edge cases (empty inputs, single elements, maximum values)
@@ -103,7 +103,7 @@ Requirements:
    - Error cases and exceptions
 3. Ensure every line of code is executed by at least one test
 4. Test all return value possibilities
-5. Only write unit tests in the output and nothing else
+5. Only write unit tests in the output and nothing else. Do not include any explanations or comments. The response should just be executable pytest code.
 
 {function_signature}
 {entry['canonical_solution']}
@@ -150,11 +150,14 @@ import pytest
         # Save the code under test to a file
         code_file = os.path.join(temp_test_dir, f"{task_number}.py")
         code_content = entry['prompt'] + entry['canonical_solution']
-        save_file(code_content, code_file)
+        os.makedirs(os.path.dirname(code_file), exist_ok=True)
+        with open(code_file, 'w+') as f:
+            f.write(code_content)
         
         # Save the test suite to a file
         test_file = os.path.join(temp_test_dir, f"{task_number}_test.py")
-        save_file(test_code, test_file)
+        with open(test_file, 'w+') as f:
+            f.write(test_code)
 
         # Run pytest with coverage
         coverage_type = "vanilla" if vanilla else "crafted"
