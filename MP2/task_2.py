@@ -88,11 +88,7 @@ The response should just be executable pytest code.
 
             prompt = (
 f"""
-You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science.
-For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.
-
-### Instructions:
-Generate a comprehensive pytest test suite for the following code with maximum code coverage. 
+You are an expert Python programmer. Generate a comprehensive pytest test suite for the following code with maximum code coverage. 
 
 Requirements:
 1. Generate at least 10 test cases to cover all possible execution paths
@@ -106,9 +102,17 @@ Requirements:
    - Error cases and exceptions
 3. Ensure every line of code is executed by at least one test
 4. Test all return value possibilities
-5. Encase your final output between ```python and ``` tags. 
-6. Only write unit tests in the output and nothing else. Do not include any explanations or comments. The response should just be executable pytest code.
+5. Only write unit tests in the output and nothing else. Do not include any explanations or comments. The response should just be executable pytest code.
+Encase the code within triple backticks for python code blocks as shown in the example unit tests below:
+```python
+import pytest
 
+def test_no_brackets():
+    assert is_nested("no brackets here") == False
+
+def test_single_pair():
+    assert is_nested("[]") == False
+```
 {function_signature}
 {entry['canonical_solution']}
 
@@ -147,6 +151,11 @@ import pytest
         # Join all code blocks with newlines if multiple blocks exist
         code = '\n\n'.join(match.strip() for match in matches)
 
+        test_code = ""
+
+        if (vanilla == True):
+            test_code += 'import pytest\n\n'
+            
         # Add the function under test
         test_code = entry['prompt'] + entry['canonical_solution'] + "\n\n"
         
