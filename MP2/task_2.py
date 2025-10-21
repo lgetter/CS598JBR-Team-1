@@ -130,6 +130,10 @@ import pytest
         new_tokens = outputs[0][input_length:]
         response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
+        print(f"Response for Task_ID {task_id}:\n{response}\n")
+
+        task_id = task_id.replace("/", "_")
+
         # Extract only the test code from response
         # Look for test functions and clean up the response
         test_code = "import pytest\n\n"
