@@ -53,6 +53,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
 
     for entry in dataset:
         task_id = entry["task_id"]
+        task_number = task_id.split('/')[-1]
         all_tests = test_info[task_id]
         selected_test = all_tests.pop()
         input = selected_test["input"]
@@ -71,7 +72,7 @@ For politically sensitive questions, security and privacy issues, and other non-
 
 ### Instructions:
 Generate a pytest test suite for the following code.
-Only write unit tests in the response and nothing else. Do not include any explanations for the test suite.
+Only write unit tests in the response and nothing else.
 
 {function_signature}
 {entry['canonical_solution']}
@@ -132,8 +133,6 @@ import pytest
 
         print(f"Response for Task_ID {task_id}:\n{response}\n")
 
-        task_id = task_id.replace("/", "_")
-
         # Extract only the test code from response
         # Look for test functions and clean up the response
         test_code = "import pytest\n\n"
@@ -145,30 +144,30 @@ import pytest
         test_code += response
 
         # Create directory for temporary test files
-        temp_test_dir = "MP2/temp_tests"
+        temp_test_dir = "Tests"
         os.makedirs(temp_test_dir, exist_ok=True)
         
         # Save the code under test to a file
-        code_file = os.path.join(temp_test_dir, f"{task_id}.py")
+        code_file = os.path.join(temp_test_dir, f"{task_number}.py")
         code_content = entry['prompt'] + entry['canonical_solution']
         save_file(code_content, code_file)
         
         # Save the test suite to a file
-        test_file = os.path.join(temp_test_dir, f"{task_id}_test.py")
+        test_file = os.path.join(temp_test_dir, f"{task_number}_test.py")
         save_file(test_code, test_file)
 
         # Run pytest with coverage
         coverage_type = "vanilla" if vanilla else "crafted"
-        coverage_dir = "MP2/Coverage"
+        coverage_dir = "Coverage"
         os.makedirs(coverage_dir, exist_ok=True)
-        coverage_file = os.path.join(coverage_dir, f"{task_id}_test_{coverage_type}.json")
+        coverage_file = os.path.join(coverage_dir, f"{task_number}_test_{coverage_type}.json")
         
         try:
             # Run pytest with coverage
             cmd = [
                 "pytest", 
                 test_file, 
-                "--cov", task_id,
+                "--cov", task_number,
                 "--cov-report", f"json:{coverage_file}",
                 "-v"
             ]
