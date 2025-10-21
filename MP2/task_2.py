@@ -136,7 +136,7 @@ import pytest
         # Extract only the test code from response
         # Look for test functions and clean up the response        
         # Add the function under test
-        test_code += entry['prompt'] + entry['canonical_solution'] + "\n\n"
+        test_code = entry['prompt'] + entry['canonical_solution'] + "\n\n"
         
         # Add the generated tests
         test_code += response
