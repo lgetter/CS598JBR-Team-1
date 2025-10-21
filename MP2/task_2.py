@@ -144,20 +144,108 @@ import pytest
         test_code += response
 
         # Create directory for temporary test files
-        temp_test_dir = "Tests"
+        temp_test_dir = "Tests/"
         os.makedirs(temp_test_dir, exist_ok=True)
         
         # Save the code under test to a file
         code_file = os.path.join(temp_test_dir, f"{task_number}.py")
-        code_content = entry['prompt'] + entry['canonical_solution']
-        os.makedirs(os.path.dirname(code_file), exist_ok=True)
-        with open(code_file, 'w+') as f:
-            f.write(code_content)
+        code_content = function_signature + entry['canonical_solution']
+        
+        try:
+            print(f"Attempting to create code file: {code_file}")
+            print(f"  Absolute path: {os.path.abspath(code_file)}")
+            print(f"  Directory exists: {os.path.exists(temp_test_dir)}")
+            print(f"  Content length: {len(code_content)} characters")
+            
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(code_file), exist_ok=True)
+            
+            # Write the file
+            with open(code_file, 'w+') as f:
+                bytes_written = f.write(code_content)
+                print(f"✓ Wrote {bytes_written} characters to {code_file}")
+            
+            # Verify the file was created
+            if os.path.exists(code_file):
+                file_size = os.path.getsize(code_file)
+                print(f"✓ File verified: {code_file} ({file_size} bytes)")
+            else:
+                print(f"✗ WARNING: File not found after write: {code_file}")
+                
+        except PermissionError as e:
+            print(f"✗ Permission error writing code file: {str(e)}")
+            print(f"  Check write permissions for: {os.path.dirname(code_file)}")
+            raise
+        except OSError as e:
+            print(f"✗ OS error writing code file: {str(e)}")
+            print(f"  Error code: {e.errno}")
+            raise
+        except Exception as e:
+            print(f"✗ Unexpected error writing code file: {str(e)}")
+            print(f"  Error type: {type(e).__name__}")
+            import traceback
+            traceback.print_exc()
+            raise
         
         # Save the test suite to a file
         test_file = os.path.join(temp_test_dir, f"{task_number}_test.py")
-        with open(test_file, 'w+') as f:
-            f.write(test_code)
+        
+        try:
+            print(f"Attempting to create test file: {test_file}")
+            print(f"  Absolute path: {os.path.abspath(test_file)}")
+            print(f"  Test code length: {len(test_code)} characters")
+            
+            # Write the file
+            with open(test_file, 'w+') as f:
+                bytes_written = f.write(test_code)
+                print(f"✓ Wrote {bytes_written} characters to {test_file}")
+            
+            # Verify the file was created
+            if os.path.exists(test_file):
+                file_size = os.path.getsize(test_file)
+                print(f"✓ File verified: {test_file} ({file_size} bytes)")
+                
+                # Print first few lines of the test file for verification
+                with open(test_file, 'r') as f:
+                    first_lines = ''.join(f.readlines()[:5])
+                    print(f"  First few lines of test file:\n{first_lines}")
+            else:
+                print(f"✗ WARNING: File not found after write: {test_file}")
+                
+        except PermissionError as e:
+            print(f"✗ Permission error writing test file: {str(e)}")
+            print(f"  Check write permissions for: {os.path.dirname(test_file)}")
+            raise
+        except OSError as e:
+            print(f"✗ OS error writing test file: {str(e)}")
+            print(f"  Error code: {e.errno}")
+            raise
+        except Exception as e:
+            print(f"✗ Unexpected error writing test file: {str(e)}")
+            print(f"  Error type: {type(e).__name__}")
+            import traceback
+            traceback.print_exc()
+            raise
+        
+        # List files in the temp directory for debugging
+        try:
+            files_in_dir = os.listdir(temp_test_dir)
+            print(f"Files in {temp_test_dir}: {files_in_dir}")
+        except Exception as e:
+            print(f"✗ Error listing directory contents: {str(e)}")
+
+        
+        # # Save the code under test to a file
+        # code_file = os.path.join(temp_test_dir, f"{task_number}.py")
+        # code_content = function_signature + entry['canonical_solution']
+        # os.makedirs(os.path.dirname(code_file), exist_ok=True)
+        # with open(code_file, 'w+') as f:
+        #     f.write(code_content)
+        
+        # # Save the test suite to a file
+        # test_file = os.path.join(temp_test_dir, f"{task_number}_test.py")
+        # with open(test_file, 'w+') as f:
+        #     f.write(test_code)
 
         # Run pytest with coverage
         coverage_type = "vanilla" if vanilla else "crafted"
