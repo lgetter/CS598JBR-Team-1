@@ -1,8 +1,11 @@
+import json
 import jsonlines
 import sys
 import torch
+import subprocess
+import os
+import re
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-
 #####################################################
 # Please finish all TODOs in this file for MP2;
 #####################################################
@@ -24,7 +27,7 @@ def save_file(content, file_path):
 
 def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct", vanilla = True):
     print(f"Working with {model_name} prompt type {vanilla}...")
-    
+
     # TODO: download the model
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 
@@ -42,9 +45,15 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         quantization_config=quant_config,
     )
     
+    test_info = json.load(open("selected_humaneval_tests_all.json", "r"))
+
     results = []
+
+    i = 1
+
     for entry in dataset:
-        all_tests = test_info[entry["task_id"]]
+        task_id = entry["task_id"]
+        all_tests = test_info[task_id]
         selected_test = all_tests.pop()
         input = selected_test["input"]
         output = selected_test["output"]
@@ -79,74 +88,135 @@ You are an AI programming assistant, utilizing the DeepSeek Coder model, develop
 For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.
 
 ### Instructions:
-If the input is {input}, what will the following Python function return?
-The return value prediction must be enclosed between [Output] and [/Output] tags. For example: [Output]prediction[/Output].
-Be careful with modulo (%), inequalities, range functions, and orders of operation.
+Generate a comprehensive pytest test suite for the following code with maximum code coverage. 
+
+Requirements:
+1. Generate at least 15-20 test cases to cover all possible execution paths
+2. Include tests for:
+   - Normal/typical inputs
+   - Edge cases (empty inputs, single elements, maximum values)
+   - Boundary conditions
+   - Different data types where applicable
+   - All conditional branches (if/else statements)
+   - Loop iterations (empty, single, multiple)
+   - Error cases and exceptions
+3. Ensure every line of code is executed by at least one test
+4. Test all return value possibilities
+5. Only write unit tests in the output and nothing else
 
 {function_signature}
 {entry['canonical_solution']}
+
 ### Response:
+
+import pytest
+
 """)
 
-        print(f"({i}/20) Prompt for Task_ID {entry['task_id']}:\n{prompt}")
+        print(f"({i}/20) Prompt for Task_ID {task_id}:\n{prompt}")
 
         # TODO: prompt the model and get the response
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
-        # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=500,
+            max_new_tokens=1000,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
 
-        # TODO: process the response and save it to results
-
-        # Original response
-        # response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-        ## Avoid printing the prompt again in the response
-        # Get the length of the input tokens
-        input_length = inputs.input_ids.shape[1]
-
         # Decode only the newly generated tokens
+        input_length = inputs.input_ids.shape[1]
         new_tokens = outputs[0][input_length:]
         response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
-        # print(f"({i}/20) Response for Task_ID {entry['task_id']}:\n{response}")
-        print(f"{response}")
+        print(f"Response for Task_ID {task_id}:\n{response}\n")
 
-        response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
-
-        verdict = False
-        if output in response:
-            verdict = True
-
-        print(
-            f"Expected output: {output}\n"
-            f"Actual output: {response}\n"
-            f"Is correct: {verdict}\n"
-        )
-
-        print("========================================\n")
-
-        i += 1
+        # Extract only the test code from response
+        # Look for test functions and clean up the response
+        test_code = "import pytest\n\n"
         
-        # TODO: prompt the model and get the response
-        response = ""
+        # Add the function under test
+        test_code += entry['prompt'] + entry['canonical_solution'] + "\n\n"
+        
+        # Add the generated tests
+        test_code += response
 
-        # TODO: process the response, generate coverage and save it to results
-        coverage = ""
+        # Save the code under test to a file
+        code_file = f"{task_id}.py"
+        code_content = entry['prompt'] + entry['canonical_solution']
+        save_file(code_content, code_file)
+        
+        # Save the test suite to a file
+        test_file = f"{task_id}_test.py"
+        save_file(test_code, test_file)
 
-        print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\ncoverage:\n{coverage}")
+        # Run pytest with coverage
+        coverage_type = "vanilla" if vanilla else "crafted"
+        coverage_dir = "MP2/Coverage"
+        os.makedirs(coverage_dir, exist_ok=True)
+        coverage_file = f"{coverage_dir}/{task_id}_test_{coverage_type}.json"
+        
+        try:
+            # Run pytest with coverage
+            cmd = [
+                "pytest", 
+                test_file, 
+                "--cov", task_id, 
+                "--cov-report", f"json:{coverage_file}"
+            ]
+            
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            print(f"Pytest output:\n{result.stdout}\n")
+            if result.stderr:
+                print(f"Pytest errors:\n{result.stderr}\n")
+            
+            # Read coverage report
+            coverage = ""
+            if os.path.exists(coverage_file):
+                with open(coverage_file, 'r') as f:
+                    coverage_data = json.load(f)
+                    # Extract coverage percentage
+                    if 'totals' in coverage_data:
+                        coverage = f"{coverage_data['totals'].get('percent_covered', 0):.2f}%"
+                    else:
+                        coverage = "Coverage data not available"
+            else:
+                coverage = "Coverage file not generated"
+                
+        except subprocess.TimeoutExpired:
+            coverage = "Test execution timeout"
+            print(f"Test execution timed out for {task_id}")
+        except Exception as e:
+            coverage = f"Error: {str(e)}"
+            print(f"Error running tests for {task_id}: {str(e)}")
+        
+        # Clean up temporary files
+        try:
+            if os.path.exists(code_file):
+                os.remove(code_file)
+            if os.path.exists(test_file):
+                os.remove(test_file)
+        except Exception as e:
+            print(f"Error cleaning up files: {str(e)}")
+
+        print(f"Task_ID {task_id}:\ncoverage: {coverage}")
         print("========================================\n")
+        
         results.append({
-            "task_id": entry["task_id"],
+            "task_id": task_id,
             "prompt": prompt,
             "response": response,
             "coverage": coverage
         })
+        
+        i += 1
         
     return results
 
