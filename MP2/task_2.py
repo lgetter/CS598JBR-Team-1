@@ -71,7 +71,7 @@ For politically sensitive questions, security and privacy issues, and other non-
 
 ### Instructions:
 Generate a pytest test suite for the following code.
-Only write unit tests in the output and nothing else.
+Only write unit tests in the response and nothing else. Do not include any explanations for the test suite.
 
 {function_signature}
 {entry['canonical_solution']}
@@ -130,8 +130,6 @@ import pytest
         new_tokens = outputs[0][input_length:]
         response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
-        print(f"Response for Task_ID {task_id}:\n{response}\n")
-
         # Extract only the test code from response
         # Look for test functions and clean up the response
         test_code = "import pytest\n\n"
@@ -142,35 +140,41 @@ import pytest
         # Add the generated tests
         test_code += response
 
+        # Create directory for temporary test files
+        temp_test_dir = "MP2/temp_tests"
+        os.makedirs(temp_test_dir, exist_ok=True)
+        
         # Save the code under test to a file
-        code_file = f"{task_id}.py"
+        code_file = os.path.join(temp_test_dir, f"{task_id}.py")
         code_content = entry['prompt'] + entry['canonical_solution']
         save_file(code_content, code_file)
         
         # Save the test suite to a file
-        test_file = f"{task_id}_test.py"
+        test_file = os.path.join(temp_test_dir, f"{task_id}_test.py")
         save_file(test_code, test_file)
 
         # Run pytest with coverage
         coverage_type = "vanilla" if vanilla else "crafted"
         coverage_dir = "MP2/Coverage"
         os.makedirs(coverage_dir, exist_ok=True)
-        coverage_file = f"{coverage_dir}/{task_id}_test_{coverage_type}.json"
+        coverage_file = os.path.join(coverage_dir, f"{task_id}_test_{coverage_type}.json")
         
         try:
             # Run pytest with coverage
             cmd = [
                 "pytest", 
                 test_file, 
-                "--cov", task_id, 
-                "--cov-report", f"json:{coverage_file}"
+                "--cov", task_id,
+                "--cov-report", f"json:{coverage_file}",
+                "-v"
             ]
             
             result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
+                cwd=temp_test_dir  # Run pytest from the temp directory
             )
             
             print(f"Pytest output:\n{result.stdout}\n")
