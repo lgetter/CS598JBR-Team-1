@@ -295,15 +295,6 @@ import pytest
             coverage = f"Error: {str(e)}"
             print(f"Error running tests for {task_id}: {str(e)}")
         
-        # Clean up temporary files
-        try:
-            if os.path.exists(code_file):
-                os.remove(code_file)
-            if os.path.exists(test_file):
-                os.remove(test_file)
-        except Exception as e:
-            print(f"Error cleaning up files: {str(e)}")
-
         print(f"Task_ID {task_id}:\ncoverage: {coverage}")
         print("========================================\n")
         
