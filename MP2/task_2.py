@@ -1,8 +1,11 @@
+import json
 import jsonlines
 import sys
 import torch
+import subprocess
+import os
+import re
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-
 #####################################################
 # Please finish all TODOs in this file for MP2;
 #####################################################
@@ -24,7 +27,7 @@ def save_file(content, file_path):
 
 def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct", vanilla = True):
     print(f"Working with {model_name} prompt type {vanilla}...")
-    
+
     # TODO: download the model
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 
@@ -42,9 +45,15 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         quantization_config=quant_config,
     )
     
+    test_info = json.load(open("selected_humaneval_tests_all.json", "r"))
+
     results = []
+
+    i = 1
+
     for entry in dataset:
-        all_tests = test_info[entry["task_id"]]
+        task_id = entry["task_id"]
+        all_tests = test_info[task_id]
         selected_test = all_tests.pop()
         input = selected_test["input"]
         output = selected_test["output"]
@@ -62,91 +71,128 @@ For politically sensitive questions, security and privacy issues, and other non-
 
 ### Instructions:
 Generate a pytest test suite for the following code.
-Only write unit tests in the output and nothing else.
+Only write unit tests in the output and nothing else. 
 
 {function_signature}
 {entry['canonical_solution']}
 ### Response:
 """)
         else:
-            # selected_example = all_tests.pop()
-            # example_input = selected_example["input"]
-            # example_output = selected_example["output"]
-
             prompt = (
 f"""
 You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science.
 For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.
 
 ### Instructions:
-If the input is {input}, what will the following Python function return?
-The return value prediction must be enclosed between [Output] and [/Output] tags. For example: [Output]prediction[/Output].
-Be careful with modulo (%), inequalities, range functions, and orders of operation.
+1. Generate a pytest test suite for the following code with maximum code coverage
+2. Generate as many test cases as necessary to cover all possible execution paths
+3. Try to include tests for:
+   - Normal/typical inputs
+   - Edge cases (empty inputs, single elements, maximum values)
+   - Boundary conditions
+   - Different data types where applicable
+   - All conditional branches (if/else statements)
+   - Loop iterations (empty, single, multiple)
+   - Error cases and exceptions
+4. Ensure every line of code is executed by at least one test
+5. Test all return value possibilities
 
 {function_signature}
 {entry['canonical_solution']}
+
 ### Response:
 """)
 
-        print(f"({i}/20) Prompt for Task_ID {entry['task_id']}:\n{prompt}")
+        print(f"({i}/20) Prompt for Task_ID {task_id}:\n{prompt}")
 
         # TODO: prompt the model and get the response
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
 
-        # Original outputs
         outputs = model.generate(
             **inputs,
-            max_new_tokens=500,
+            max_new_tokens=1000,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
 
-        # TODO: process the response and save it to results
-
-        # Original response
-        # response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-        ## Avoid printing the prompt again in the response
-        # Get the length of the input tokens
-        input_length = inputs.input_ids.shape[1]
-
         # Decode only the newly generated tokens
+        input_length = inputs.input_ids.shape[1]
         new_tokens = outputs[0][input_length:]
         response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
-        # print(f"({i}/20) Response for Task_ID {entry['task_id']}:\n{response}")
-        print(f"{response}")
+        print(f"Response for Task_ID {task_id}:\n{response}\n")
 
-        response = response.split("[Output]")[-1].split("[/Output]")[0].strip()
+        task_id = task_id.replace("/", "_")
 
-        verdict = False
-        if output in response:
-            verdict = True
+        pattern = r'```python\s*(.*?)```'
+        matches = re.findall(pattern, response, re.DOTALL)
+        code = '\n\n'.join(match.strip() for match in matches)
 
-        print(
-            f"Expected output: {output}\n"
-            f"Actual output: {response}\n"
-            f"Is correct: {verdict}\n"
-        )
+        test_code = code.replace('your_module', task_id)
 
-        print("========================================\n")
-
-        i += 1
+        # Create directory for temporary test files
+        temp_test_dir = "Tests/"
+        os.makedirs(temp_test_dir, exist_ok=True)
         
-        # TODO: prompt the model and get the response
-        response = ""
+        # Save the code under test to a file
+        code_file = os.path.join(temp_test_dir, f"{task_id}.py")
+        code_content = entry['prompt'] + entry['canonical_solution']
+        os.makedirs(os.path.dirname(code_file), exist_ok=True)
+        with open(code_file, 'w') as f:
+            f.write(code_content)
+        
+        # Save the test suite to a file
+        test_file = os.path.join(temp_test_dir, f"{task_id}_test.py")
+        with open(test_file, 'w') as f:
+            f.write(test_code)
 
-        # TODO: process the response, generate coverage and save it to results
-        coverage = ""
-
-        print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\ncoverage:\n{coverage}")
+        # Run pytest with coverage
+        coverage_type = "vanilla" if vanilla else "crafted"
+        coverage_dir = "Coverage"
+        os.makedirs(coverage_dir, exist_ok=True)
+        coverage_file = os.path.join(coverage_dir, f"{task_id}_test_{coverage_type}.json")
+        
+        try:
+            # Run pytest with coverage
+            cmd = [
+                "pytest", 
+                os.path.abspath(test_file), 
+                "--cov", task_id,
+                "--cov-report", f"json:{coverage_file}",
+                "-v"
+            ]
+            
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                cwd=temp_test_dir  # Run pytest from the temp directory
+            )
+            
+            print(f"Pytest output:\n{result.stdout}\n")
+            if result.stderr:
+                print(f"Pytest errors:\n{result.stderr}\n")
+                            
+        except subprocess.TimeoutExpired:
+            coverage = "Test execution timeout"
+            print(f"Test execution timed out for {task_id}")
+        except Exception as e:
+            coverage = f"Error: {str(e)}"
+            print(f"Error running tests for {task_id}: {str(e)}")
+        
+        #print(f"Task_ID {task_id}:\ncoverage: {coverage}")
+        coverage = "placeholder"
         print("========================================\n")
+        
         results.append({
-            "task_id": entry["task_id"],
+            "task_id": task_id,
             "prompt": prompt,
             "response": response,
             "coverage": coverage
         })
+        
+        i += 1
         
     return results
 
