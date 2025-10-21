@@ -142,15 +142,13 @@ import pytest
 
         test_code = ""
 
-        if vanilla:
-            test_code += 'import pytest\n\n'
-            test_code += 'import ' + task_number + '.py\n\n'
-
         # Add the function under test
-        test_code = entry['prompt'] + entry['canonical_solution'] + "\n\n"
+        test_code += entry['prompt'] + entry['canonical_solution'] + "\n\n"
         
         # Add the generated tests
         test_code += code
+
+        test_code = test_code.replace('your_module', task_number)
 
         # Create directory for temporary test files
         temp_test_dir = "Tests/"
