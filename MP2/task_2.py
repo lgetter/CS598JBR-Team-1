@@ -72,7 +72,10 @@ For politically sensitive questions, security and privacy issues, and other non-
 
 ### Instructions:
 Generate a pytest test suite for the following code.
-Only write unit tests in the output and nothing else. Do not include any explanations or comments. The response should just be executable pytest code.
+Only write unit tests in the output and nothing else. 
+Do not import any modules for the code under test, assume that it is present in the same file.
+Do not include any explanations or comments. 
+The response should just be executable pytest code.
 
 {function_signature}
 {entry['canonical_solution']}
@@ -92,8 +95,8 @@ For politically sensitive questions, security and privacy issues, and other non-
 Generate a comprehensive pytest test suite for the following code with maximum code coverage. 
 
 Requirements:
-1. Generate at least 10-15 test cases to cover all possible execution paths
-2. Include tests for:
+1. Generate at least 10 test cases to cover all possible execution paths
+2. Try to include tests for:
    - Normal/typical inputs
    - Edge cases (empty inputs, single elements, maximum values)
    - Boundary conditions
