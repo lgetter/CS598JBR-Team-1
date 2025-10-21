@@ -54,7 +54,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
     for entry in dataset:
         task_id = entry["task_id"]
         all_tests = test_info[task_id]
-        selected_test = all_tests.pop()
+        selected_test = all_tests.pop(0)
         input = selected_test["input"]
         output = selected_test["output"]
 
