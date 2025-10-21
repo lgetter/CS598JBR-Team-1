@@ -78,17 +78,15 @@ Only write unit tests in the output and nothing else.
 ### Response:
 """)
         else:
-            # selected_example = all_tests.pop()
-            # example_input = selected_example["input"]
-            # example_output = selected_example["output"]
-
             prompt = (
 f"""
-You are an expert Python programmer. Generate a pytest test suite for the following code with maximum code coverage. 
+You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science.
+For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.
 
-### Requirements:
-1. Generate at least 10 test cases to cover all possible execution paths
-2. Try to include tests for:
+### Instructions:
+1. Generate a pytest test suite for the following code with maximum code coverage
+2. Generate as many test cases as necessary to cover all possible execution paths
+3. Try to include tests for:
    - Normal/typical inputs
    - Edge cases (empty inputs, single elements, maximum values)
    - Boundary conditions
@@ -96,16 +94,13 @@ You are an expert Python programmer. Generate a pytest test suite for the follow
    - All conditional branches (if/else statements)
    - Loop iterations (empty, single, multiple)
    - Error cases and exceptions
-3. Ensure every line of code is executed by at least one test
-4. Test all return value possibilities
+4. Ensure every line of code is executed by at least one test
+5. Test all return value possibilities
 
 {function_signature}
 {entry['canonical_solution']}
 
 ### Response:
-
-import pytest
-
 """)
 
         print(f"({i}/20) Prompt for Task_ID {task_id}:\n{prompt}")
@@ -130,14 +125,17 @@ import pytest
         task_id = task_id.replace("/", "_")
 
         # Extract only the test code from response
-        # Look for test functions and clean up the response        
-        pattern = r'```python\s*(.*?)```'
-        
-        # Find all matches (re.DOTALL makes . match newlines too)
-        matches = re.findall(pattern, response, re.DOTALL)
-        
-        # Join all code blocks with newlines if multiple blocks exist
-        code = '\n\n'.join(match.strip() for match in matches)
+        # Look for test functions and clean up the response    
+        code = ""
+
+        if (vanilla):    
+            pattern = r'```python\s*(.*?)```'
+            
+            # Find all matches (re.DOTALL makes . match newlines too)
+            matches = re.findall(pattern, response, re.DOTALL)
+            
+            # Join all code blocks with newlines if multiple blocks exist
+            code = '\n\n'.join(match.strip() for match in matches)
 
         test_code = ""
 
@@ -192,20 +190,7 @@ import pytest
             print(f"Pytest output:\n{result.stdout}\n")
             if result.stderr:
                 print(f"Pytest errors:\n{result.stderr}\n")
-            
-            # Read coverage report
-            coverage = ""
-            if os.path.exists(coverage_file):
-                with open(coverage_file, 'r') as f:
-                    coverage_data = json.load(f)
-                    # Extract coverage percentage
-                    if 'totals' in coverage_data:
-                        coverage = f"{coverage_data['totals'].get('percent_covered', 0):.2f}%"
-                    else:
-                        coverage = "Coverage data not available"
-            else:
-                coverage = "Coverage file not generated"
-                
+                            
         except subprocess.TimeoutExpired:
             coverage = "Test execution timeout"
             print(f"Test execution timed out for {task_id}")
