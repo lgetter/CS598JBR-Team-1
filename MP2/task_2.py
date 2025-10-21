@@ -53,7 +53,6 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
 
     for entry in dataset:
         task_id = entry["task_id"]
-        task_number = task_id.split('/')[-1]
         all_tests = test_info[task_id]
         selected_test = all_tests.pop()
         input = selected_test["input"]
@@ -85,7 +84,7 @@ Only write unit tests in the output and nothing else.
 
             prompt = (
 f"""
-You are an expert Python programmer. Generate a comprehensive pytest test suite for the following code with maximum code coverage. 
+You are an expert Python programmer. Generate a pytest test suite for the following code with maximum code coverage. 
 
 ### Requirements:
 1. Generate at least 10 test cases to cover all possible execution paths
@@ -99,10 +98,7 @@ You are an expert Python programmer. Generate a comprehensive pytest test suite 
    - Error cases and exceptions
 3. Ensure every line of code is executed by at least one test
 4. Test all return value possibilities
-5. Only write unit tests in the output and nothing else. Do not include any explanations or comments. The response should just be executable pytest code.
-6. Encase the unit test code in between [CODE] and [/CODE] tags. For example: [CODE]code[/CODE].
 
-### Function to test:
 {function_signature}
 {entry['canonical_solution']}
 
@@ -131,6 +127,8 @@ import pytest
 
         print(f"Response for Task_ID {task_id}:\n{response}\n")
 
+        task_id = task_id.replace("/", "_")
+
         # Extract only the test code from response
         # Look for test functions and clean up the response        
         pattern = r'```python\s*(.*?)```'
@@ -144,26 +142,26 @@ import pytest
         test_code = ""
 
         # Add the function under test
-        test_code += entry['prompt'] + entry['canonical_solution'] + "\n\n"
+        #test_code += entry['prompt'] + entry['canonical_solution'] + "\n\n"
         
         # Add the generated tests
         test_code += code
 
-        test_code = test_code.replace('your_module', task_number)
+        test_code = test_code.replace('your_module', task_id)
 
         # Create directory for temporary test files
         temp_test_dir = "Tests/"
         os.makedirs(temp_test_dir, exist_ok=True)
         
         # Save the code under test to a file
-        code_file = os.path.join(temp_test_dir, f"{task_number}.py")
+        code_file = os.path.join(temp_test_dir, f"{task_id}.py")
         code_content = entry['prompt'] + entry['canonical_solution']
         os.makedirs(os.path.dirname(code_file), exist_ok=True)
         with open(code_file, 'w') as f:
             f.write(code_content)
         
         # Save the test suite to a file
-        test_file = os.path.join(temp_test_dir, f"{task_number}_test.py")
+        test_file = os.path.join(temp_test_dir, f"{task_id}_test.py")
         with open(test_file, 'w') as f:
             f.write(test_code)
 
@@ -171,14 +169,14 @@ import pytest
         coverage_type = "vanilla" if vanilla else "crafted"
         coverage_dir = "Coverage"
         os.makedirs(coverage_dir, exist_ok=True)
-        coverage_file = os.path.join(coverage_dir, f"{task_number}_test_{coverage_type}.json")
+        coverage_file = os.path.join(coverage_dir, f"{task_id}_test_{coverage_type}.json")
         
         try:
             # Run pytest with coverage
             cmd = [
                 "pytest", 
                 os.path.abspath(test_file), 
-                "--cov", task_number,
+                "--cov", task_id,
                 "--cov-report", f"json:{coverage_file}",
                 "-v"
             ]
