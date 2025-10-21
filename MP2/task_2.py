@@ -148,7 +148,7 @@ For politically sensitive questions, security and privacy issues, and other non-
 
         # Run pytest with coverage
         coverage_type = "vanilla" if vanilla else "crafted"
-        coverage_dir = "Coverage"
+        coverage_dir = os.path.join(os.getcwd(), "Coverage")
         os.makedirs(coverage_dir, exist_ok=True)
         coverage_file = os.path.join(coverage_dir, f"{task_id}_test_{coverage_type}.json")
         
@@ -173,6 +173,24 @@ For politically sensitive questions, security and privacy issues, and other non-
             print(f"Pytest output:\n{result.stdout}\n")
             if result.stderr:
                 print(f"Pytest errors:\n{result.stderr}\n")
+
+            # --- Extract coverage percentage ---
+            coverage = 0.0
+            if os.path.exists(coverage_file):
+                try: 
+                    with open(coverage_file, "r") as cf:
+                        cov_data = json.load(cf)
+                        # This key exists in pytest-cov JSON report
+                        if "totals" in cov_data and "percent_covered" in cov_data["totals"]:
+                            coverage = cov_data["totals"]["percent_covered"]
+                        elif "totals" in cov_data and "percent_covered_display" in cov_data["totals"]:
+                            coverage = float(cov_data["totals"]["percent_covered_display"].replace("%", ""))
+                        else:
+                            coverage = 0.0
+                except Exception as e:
+                    coverage = f"Error parsing coverage: {str(e)}"
+            else:
+                coverage = "No coverage file found"
                             
         except subprocess.TimeoutExpired:
             coverage = "Test execution timeout"
@@ -182,7 +200,6 @@ For politically sensitive questions, security and privacy issues, and other non-
             print(f"Error running tests for {task_id}: {str(e)}")
         
         #print(f"Task_ID {task_id}:\ncoverage: {coverage}")
-        coverage = "placeholder"
         print("========================================\n")
         
         results.append({
