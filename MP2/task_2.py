@@ -73,9 +73,6 @@ For politically sensitive questions, security and privacy issues, and other non-
 ### Instructions:
 Generate a pytest test suite for the following code.
 Only write unit tests in the output and nothing else. 
-Do not import any modules for the code under test, assume that it is present in the same file.
-Do not include any explanations or comments. 
-The response should just be executable pytest code.
 
 {function_signature}
 {entry['canonical_solution']}
@@ -103,16 +100,8 @@ Requirements:
 3. Ensure every line of code is executed by at least one test
 4. Test all return value possibilities
 5. Only write unit tests in the output and nothing else. Do not include any explanations or comments. The response should just be executable pytest code.
-Encase the code within triple backticks for python code blocks as shown in the example unit tests below:
-```python
-import pytest
+Encase the code in between [CODE] and [/CODE] tags. For example: [CODE]code[/CODE].
 
-def test_no_brackets():
-    assert is_nested("no brackets here") == False
-
-def test_single_pair():
-    assert is_nested("[]") == False
-```
 {function_signature}
 {entry['canonical_solution']}
 
@@ -153,9 +142,10 @@ import pytest
 
         test_code = ""
 
-        if (vanilla == True):
+        if vanilla:
             test_code += 'import pytest\n\n'
-            
+            test_code += 'import ' + task_number + '.py\n\n'
+
         # Add the function under test
         test_code = entry['prompt'] + entry['canonical_solution'] + "\n\n"
         
