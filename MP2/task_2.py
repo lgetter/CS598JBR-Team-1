@@ -128,14 +128,13 @@ For politically sensitive questions, security and privacy issues, and other non-
         # Look for test functions and clean up the response    
         code = ""
 
-        if (vanilla):    
-            pattern = r'```python\s*(.*?)```'
-            
-            # Find all matches (re.DOTALL makes . match newlines too)
-            matches = re.findall(pattern, response, re.DOTALL)
-            
-            # Join all code blocks with newlines if multiple blocks exist
-            code = '\n\n'.join(match.strip() for match in matches)
+        pattern = r'```python\s*(.*?)```'
+        
+        # Find all matches (re.DOTALL makes . match newlines too)
+        matches = re.findall(pattern, response, re.DOTALL)
+        
+        # Join all code blocks with newlines if multiple blocks exist
+        code += '\n\n'.join(match.strip() for match in matches)
 
         test_code = ""
 
@@ -198,7 +197,7 @@ For politically sensitive questions, security and privacy issues, and other non-
             coverage = f"Error: {str(e)}"
             print(f"Error running tests for {task_id}: {str(e)}")
         
-        print(f"Task_ID {task_id}:\ncoverage: {coverage}")
+        #print(f"Task_ID {task_id}:\ncoverage: {coverage}")
         print("========================================\n")
         
         results.append({
