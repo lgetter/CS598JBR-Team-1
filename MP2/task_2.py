@@ -87,7 +87,7 @@ Only write unit tests in the output and nothing else.
 f"""
 You are an expert Python programmer. Generate a comprehensive pytest test suite for the following code with maximum code coverage. 
 
-Requirements:
+### Requirements:
 1. Generate at least 10 test cases to cover all possible execution paths
 2. Try to include tests for:
    - Normal/typical inputs
@@ -100,8 +100,9 @@ Requirements:
 3. Ensure every line of code is executed by at least one test
 4. Test all return value possibilities
 5. Only write unit tests in the output and nothing else. Do not include any explanations or comments. The response should just be executable pytest code.
-Encase the code in between [CODE] and [/CODE] tags. For example: [CODE]code[/CODE].
+6. Encase the unit test code in between [CODE] and [/CODE] tags. For example: [CODE]code[/CODE].
 
+### Function to test:
 {function_signature}
 {entry['canonical_solution']}
 
