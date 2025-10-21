@@ -106,7 +106,8 @@ Requirements:
    - Error cases and exceptions
 3. Ensure every line of code is executed by at least one test
 4. Test all return value possibilities
-5. Only write unit tests in the output and nothing else. Do not include any explanations or comments. The response should just be executable pytest code.
+5. Encase your final output between ```python and ``` tags. 
+6. Only write unit tests in the output and nothing else. Do not include any explanations or comments. The response should just be executable pytest code.
 
 {function_signature}
 {entry['canonical_solution']}
@@ -138,11 +139,19 @@ import pytest
 
         # Extract only the test code from response
         # Look for test functions and clean up the response        
+        pattern = r'```python\s*(.*?)```'
+        
+        # Find all matches (re.DOTALL makes . match newlines too)
+        matches = re.findall(pattern, response, re.DOTALL)
+        
+        # Join all code blocks with newlines if multiple blocks exist
+        code = '\n\n'.join(match.strip() for match in matches)
+
         # Add the function under test
         test_code = entry['prompt'] + entry['canonical_solution'] + "\n\n"
         
         # Add the generated tests
-        test_code += response
+        test_code += code
 
         # Create directory for temporary test files
         temp_test_dir = "Tests/"
