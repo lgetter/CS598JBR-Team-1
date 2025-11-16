@@ -36,11 +36,34 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         # Create prompt for the model
         # Tip : Use can use any data from the dataset to create 
         #       the prompt including prompt, canonical_solution, test, etc.
-        prompt = "You are an AI programming assistant. You are an AI programming assistant utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer." \
-            "### Instruction:\n" \
-            f"{entry['buggy_solution']}" \
-            "Is the above code buggy or correct? Please explain your step by step reasoning. The prediction should be enclosed within <start> and <end> tags. For example: <start>Buggy<end> or <start>Correct<end>" \
-            "### Response:\n"
+        if vanilla:
+            prompt = "You are an AI programming assistant. You are an AI programming assistant utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer." \
+                "### Instruction:\n" \
+                f"\n{entry['buggy_solution']}" \
+                "Is the above code buggy or correct? Please explain your step by step reasoning. The prediction should be enclosed within <start> and <end> tags. For example: <start>Buggy<end> or <start>Correct<end>" \
+                "### Response:\n"
+        else:
+            prompt = (
+                f"""
+                You are an expert Python programmer. Analyze the given Python function and determine if the function is buggy or correct.
+
+                ### Instructions:
+                Determine if the function is buggy or correct.
+
+                ### Function description:
+                {entry['prompt']}
+
+                ### Python function:
+                {entry['buggy_solution']}
+
+                Important:
+                1. Reason through the answer step by step
+                2. Consider edge cases and data types
+                3. Your prediction must exactly match the expected output format
+                4. Enclose your final prediction between <start> and <end> tags. For example: <start>Buggy<end> or <start>Correct<end>.
+
+                ### Response:
+                """)
         
         # Prompt the model and get the response
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
