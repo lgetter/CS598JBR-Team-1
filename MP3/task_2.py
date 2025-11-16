@@ -14,21 +14,61 @@ def save_file(content, file_path):
 def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct", vanilla = True):
     print(f"Working with {model_name} prompt type {vanilla}...")
     
-    # TODO: download the model
-    # TODO: load the model with quantization
+     # TODO: download the model
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+
+    # # TODO: load the model with quantization
+    quant_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",
+    )
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        trust_remote_code=True,
+        device_map="auto",
+        quantization_config=quant_config,
+    )
     
     results = []
     for entry in dataset:
-        # TODO: create prompt for the model
+        # Create prompt for the model
         # Tip : Use can use any data from the dataset to create 
         #       the prompt including prompt, canonical_solution, test, etc.
-        prompt = ""
+        prompt = "You are an AI programming assistant. You are an AI programming assistant utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer." \
+            "### Instruction:\n" \
+            f"{entry['buggy_solution']}" \
+            "Is the above code buggy or correct? Please explain your step by step reasoning. The prediction should be enclosed within <start> and <end> tags. For example: <start>Buggy<end> or <start>Correct<end>" \
+            "### Response:\n"
         
-        # TODO: prompt the model and get the response
-        response = ""
+        # Prompt the model and get the response
+        inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=100,
+            do_sample=False,
+            pad_token_id=tokenizer.eos_token_id,
+        )
+        input_length = inputs.input_ids.shape[1]
+        new_tokens = outputs[0][input_length:]
+        response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
-        # TODO: process the response and save it to results
+        print(f"Processed response for Task_ID {entry['task_id']}:\n{response}")
+        print("========================================\n")
+
+        response = response.split("<start>")[-1].split("<end>")[0].strip()
+
+        # Process the response and save it to results
         verdict = False
+        if "Correct" in response:
+            verdict = True
+
+        print(
+            f"Expected output: Buggy\n"
+            f"Actual output: {response}\n"
+            f"Is correct: {verdict}\n"
+        )
 
         print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nis_expected:\n{verdict}")
         results.append({
