@@ -69,7 +69,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
         outputs = model.generate(
             **inputs,
-            max_new_tokens=100,
+            max_new_tokens=1000,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
@@ -80,11 +80,11 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         print(f"Processed response for Task_ID {entry['task_id']}:\n{response}")
         print("========================================\n")
 
-        response = response.split("<start>")[-1].split("<end>")[0].strip()
+        parsed_response = response.split("<start>")[-1].split("<end>")[0].strip()
 
         # Process the response and save it to results
         verdict = False
-        if "Correct" in response:
+        if "Correct" in parsed_response:
             verdict = True
 
         print(
@@ -93,7 +93,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
             f"Is correct: {verdict}\n"
         )
 
-        print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nis_expected:\n{verdict}")
+        print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\is_correct:\n{verdict}")
         results.append({
             "task_id": entry["task_id"],
             "prompt": prompt,
