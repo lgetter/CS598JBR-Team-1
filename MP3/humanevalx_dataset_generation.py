@@ -35,7 +35,10 @@ def write_dataset(selected_problems, selected_problems_output, language):
     print(f"{len(selected_problems)} saved to {selected_problems_output}")
     
 def find_dataset(IDs, dataset):
-    return [item for item in dataset if item["task_id"].split("/")[-1] in IDs]
+    # Create a mapping from task_id to item for quick lookup
+    dataset_map = {item["task_id"].split("/")[-1]: item for item in dataset}
+    # Return items in the same order as IDs to maintain consistency with MP1 dataset
+    return [dataset_map[id] for id in IDs if id in dataset_map]
 
 def select_random_problems(mp1_humaneval_dataset, num_problems=20):
     original_dataset = read_jsonl(mp1_humaneval_dataset)
