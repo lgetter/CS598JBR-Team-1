@@ -61,7 +61,7 @@ def create_java_test_file(java_entry, translated_code):
     Create a complete Java file with the translated code and test.
     """
     # Extract the method signature from the prompt
-    prompt = java_entry['prompt']
+    # prompt = java_entry['prompt']
 
     # The prompt contains the class declaration and method signature
     # We need to extract everything before the method body starts
@@ -73,6 +73,10 @@ def create_java_test_file(java_entry, translated_code):
     # Extract just the method body from translated_code
     # Remove any class declarations or method signatures the model might have added
     method_body = translated_code
+
+    # Remove import statements (they shouldn't be in the method body)
+    method_body = re.sub(r'import\s+[\w\.]+\s*;?\s*\n?', '', method_body)
+    method_body = re.sub(r'import\s+[\w\.]+\.\*\s*;?\s*\n?', '', method_body)
 
     # Remove any standalone class declarations
     method_body = re.sub(r'class\s+\w+\s*\{[\s\S]*?\}', '', method_body)
@@ -194,23 +198,17 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 "### Response:\n"
             )
         else:
-            # Crafted prompt - enhanced with type hints while keeping DeepSeek format
+            # Crafted prompt - minimal enhancement to vanilla
             prompt = (
                 "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, "
                 "and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
                 "and other non-computer science questions, you will refuse to answer.\n"
                 "### Instruction:\n"
-                f"Translate the following Python function to Java.\n\n"
-                f"Important Java type conversions:\n"
-                f"- Python list → Java List<Type> (use .get(i), .add(x), .size())\n"
-                f"- Python dict → Java Map<K,V> (use .get(k), .put(k,v), .containsKey(k))\n"
-                f"- Python str[i:j] → Java str.substring(i, j)\n"
-                f"- Python len() → Java .length() for String, .size() for collections\n"
-                f"- Use StringBuilder for string concatenation in loops\n\n"
-                f"Python code:\n"
+                f"Translate the following Python function to Java:\n\n"
                 f"{entry['prompt']}\n"
                 f"{entry['canonical_solution']}\n\n"
-                f"Provide only the Java method implementation (the body of the method, without imports or method signature).\n"
+                f"Important: When translating Python lists to Java, use List<Type> with .get(i), .add(x), and .size() methods instead of array notation.\n"
+                "Provide only the Java method implementation (the body of the method).\n"
                 "### Response:\n"
             )
 
@@ -275,7 +273,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
 def read_jsonl(file_path):
     dataset = []
     with jsonlines.open(file_path) as reader:
-        for line in reader: 
+        for line in reader:
             dataset.append(line)
     return dataset
 
@@ -295,7 +293,7 @@ if __name__ == "__main__":
     - <model>: Specify the model to use. Options are "deepseek-ai/deepseek-coder-6.7b-base" or "deepseek-ai/deepseek-coder-6.7b-instruct".
     - <output_file>: A `.jsonl` file where the results will be saved.
     - <if_vanilla>: Set to 'True' or 'False' to enable vanilla prompt
-    
+
     Outputs:
     - You can check <output_file> for detailed information.
     """
@@ -304,15 +302,15 @@ if __name__ == "__main__":
     model = args[1]
     output_file = args[2]
     if_vanilla = args[3] # True or False
-    
+
     if not input_dataset.endswith(".jsonl"):
         raise ValueError(f"{input_dataset} should be a `.jsonl` file!")
-    
+
     if not output_file.endswith(".jsonl"):
         raise ValueError(f"{output_file} should be a `.jsonl` file!")
-    
+
     vanilla = True if if_vanilla == "True" else False
-    
+
     dataset = read_jsonl(input_dataset)
     results = prompt_model(dataset, model, vanilla)
     write_jsonl(results, output_file)
