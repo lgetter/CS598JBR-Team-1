@@ -1,6 +1,10 @@
 import jsonlines
 import sys
 import torch
+import subprocess
+import tempfile
+import os
+import re
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 
 #####################################################
@@ -10,6 +14,137 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 def save_file(content, file_path):
     with open(file_path, 'w') as file:
         file.write(content)
+
+def extract_java_code(response):
+    """
+    Extract Java code from the model response.
+    The response typically contains code in ```java ... ``` blocks.
+    """
+    # Try to find code between ```java and ```
+    pattern = r'```java\s*(.*?)\s*```'
+    matches = re.findall(pattern, response, re.DOTALL)
+
+    if matches:
+        # Return the first code block found
+        return matches[0].strip()
+
+    # If no code blocks found, try to extract anything that looks like a method
+    # Look for public/private method declarations
+    method_pattern = r'((?:public|private|protected|static|\s)+[\w<>\[\]]+\s+\w+\s*\([^\)]*\)\s*\{[\s\S]*?\n\})'
+    matches = re.findall(method_pattern, response, re.MULTILINE)
+
+    if matches:
+        return '\n'.join(matches)
+
+    # Last resort: return the response as-is
+    return response.strip()
+
+def load_java_dataset(seed):
+    """
+    Load the Java dataset to get the test code and method signatures.
+    """
+    java_dataset_file = f"selected_humanevalx_java_{seed}.jsonl"
+    java_dataset = {}
+
+    try:
+        with jsonlines.open(java_dataset_file) as reader:
+            for line in reader:
+                java_dataset[line['task_id']] = line
+    except FileNotFoundError:
+        print(f"Warning: Java dataset file {java_dataset_file} not found!")
+        return {}
+
+    return java_dataset
+
+def create_java_test_file(java_entry, translated_code):
+    """
+    Create a complete Java file with the translated code and test.
+    """
+    # Extract the method signature from the prompt
+    prompt = java_entry['prompt']
+
+    # The prompt contains the class declaration and method signature
+    # We need to extract everything before the method body starts
+    # Typically ends with "public ReturnType methodName(params) {"
+
+    # Get the declaration (imports + class + method signature)
+    declaration = java_entry['declaration']
+
+    # Extract just the method body from translated_code
+    # Remove any class declarations or method signatures the model might have added
+    method_body = translated_code
+
+    # Remove any standalone class declarations
+    method_body = re.sub(r'class\s+\w+\s*\{[\s\S]*?\}', '', method_body)
+
+    # Remove any method signatures (we'll use the one from the dataset)
+    method_body = re.sub(r'(public|private|protected|static|\s)+[\w<>\[\]]+\s+\w+\s*\([^\)]*\)\s*\{', '', method_body)
+
+    # Ensure the method body doesn't start with }
+    method_body = method_body.lstrip()
+    if method_body.startswith('}'):
+        method_body = method_body[1:].lstrip()
+
+    # Build the complete Java file
+    java_code = declaration + "\n" + method_body + "\n}\n"
+
+    # Add the test code
+    test_code = java_entry['test']
+
+    complete_code = java_code + "\n" + test_code
+
+    return complete_code
+
+def run_java_test(java_code, task_id):
+    """
+    Compile and run the Java code to test if it's correct.
+    Returns True if tests pass, False otherwise.
+    """
+    # Create a temporary directory for Java files
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Save the Java code to a file
+        # The test code typically has a Main class
+        java_file = os.path.join(temp_dir, "Main.java")
+
+        try:
+            with open(java_file, 'w') as f:
+                f.write(java_code)
+
+            # Compile the Java file
+            compile_result = subprocess.run(
+                ['javac', java_file],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if compile_result.returncode != 0:
+                print(f"Compilation failed for {task_id}:")
+                print(compile_result.stderr)
+                return False
+
+            # Run the Java program
+            run_result = subprocess.run(
+                ['java', '-cp', temp_dir, 'Main'],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if run_result.returncode != 0:
+                print(f"Execution failed for {task_id}:")
+                print(run_result.stderr)
+                return False
+
+            # If we get here, tests passed!
+            return True
+
+        except subprocess.TimeoutExpired:
+            print(f"Timeout for {task_id}")
+            return False
+        except Exception as e:
+            print(f"Error testing {task_id}: {e}")
+            return False
 
 def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct", vanilla = True):
     print(f"Working with {model_name} prompt type {vanilla}...")
@@ -30,6 +165,12 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         device_map="auto",
         quantization_config=quant_config,
     )
+
+    # Load the Java dataset for testing
+    # Extract seed from the first entry's file name pattern
+    # The Python dataset should have been generated with the seed in the filename
+    seed = "237879371724955854448207014936885343769"  # Your team's seed
+    java_dataset = load_java_dataset(seed)
 
     results = []
     i = 1
@@ -55,42 +196,77 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         else:
             # Crafted prompt - more detailed with context and examples
             prompt = (
-                f"You are an expert programmer specializing in code translation between Python and Java. "
-                f"Your task is to translate the given Python function to Java while maintaining the same functionality.\n\n"
-                f"### Instructions:\n"
-                f"Translate the following Python function to Java. Pay careful attention to:\n"
-                f"1. Data type conversions:\n"
-                f"   - Python lists/tuples → Java List<Type> or arrays\n"
-                f"   - Python strings → Java String\n"
-                f"   - Python None → Java null or Optional\n"
-                f"   - Python dict → Java Map or HashMap\n"
-                f"   - Python set → Java Set or HashSet\n"
-                f"2. String operations:\n"
-                f"   - Python string methods → Java String methods\n"
-                f"   - Use StringBuilder for string concatenation in loops\n"
-                f"3. List operations:\n"
-                f"   - Python list comprehensions → Java streams or loops\n"
-                f"   - Python slicing → Java subList() or manual loops\n"
-                f"   - Python append() → Java add()\n"
-                f"4. Common patterns:\n"
-                f"   - Python for x in list → Java for (Type x : list)\n"
-                f"   - Python enumerate() → Java for loop with index\n"
-                f"   - Python zip() → Java parallel iteration\n"
-                f"   - Python sorted() → Java Collections.sort() or stream().sorted()\n"
-                f"   - Python max()/min() → Java Collections.max()/min() or Math.max()/min()\n"
-                f"5. Return types:\n"
-                f"   - Match the expected Java return type\n"
-                f"   - Use List<Integer>, List<String>, etc. for lists\n\n"
-                f"### Python Function:\n"
+                f"You are an expert programmer specializing in code translation between Python and Java.\n\n"
+                f"### CRITICAL REQUIREMENTS:\n"
+                f"1. Return ONLY the method body code - the statements that go INSIDE the method\n"
+                f"2. Do NOT include: import statements, class declarations, or method signatures\n"
+                f"3. Do NOT wrap your response in code blocks or markdown\n"
+                f"4. Start directly with the first line of executable code\n\n"
+                f"### TRANSLATION EXAMPLES:\n\n"
+                f"Example 1 - List Operations:\n"
+                f"Python:\n"
+                f"def get_positive(numbers):\n"
+                f"    return [x for x in numbers if x > 0]\n\n"
+                f"Java method body (CORRECT - only the implementation):\n"
+                f"List<Integer> result = new ArrayList<>();\n"
+                f"for (int x : numbers) {{\n"
+                f"    if (x > 0) {{\n"
+                f"        result.add(x);\n"
+                f"    }}\n"
+                f"}}\n"
+                f"return result;\n\n"
+                f"Example 2 - String Operations:\n"
+                f"Python:\n"
+                f"def concat_strings(strings):\n"
+                f"    return ''.join(strings)\n\n"
+                f"Java method body (CORRECT - only the implementation):\n"
+                f"StringBuilder sb = new StringBuilder();\n"
+                f"for (String s : strings) {{\n"
+                f"    sb.append(s);\n"
+                f"}}\n"
+                f"return sb.toString();\n\n"
+                f"Example 3 - Array/List with Index:\n"
+                f"Python:\n"
+                f"def find_max_index(arr):\n"
+                f"    max_val = arr[0]\n"
+                f"    max_idx = 0\n"
+                f"    for i, val in enumerate(arr):\n"
+                f"        if val > max_val:\n"
+                f"            max_val = val\n"
+                f"            max_idx = i\n"
+                f"    return max_idx\n\n"
+                f"Java method body (CORRECT - only the implementation):\n"
+                f"int maxVal = arr.get(0);\n"
+                f"int maxIdx = 0;\n"
+                f"for (int i = 0; i < arr.size(); i++) {{\n"
+                f"    if (arr.get(i) > maxVal) {{\n"
+                f"        maxVal = arr.get(i);\n"
+                f"        maxIdx = i;\n"
+                f"    }}\n"
+                f"}}\n"
+                f"return maxIdx;\n\n"
+                f"### KEY TYPE CONVERSIONS:\n"
+                f"- Python list/tuple → Java List<Type> (use ArrayList, LinkedList)\n"
+                f"  Access with .get(i), .add(), .size(), NOT array brackets\n"
+                f"- Python dict → Java Map<K,V> (use HashMap, TreeMap)\n"
+                f"  Access with .get(key), .put(key, val), .containsKey()\n"
+                f"- Python set → Java Set<Type> (use HashSet, TreeSet)\n"
+                f"  Access with .add(), .contains(), .remove()\n"
+                f"- Python string slicing s[i:j] → Java s.substring(i, j)\n"
+                f"- Python len() → Java .length() for strings, .size() for collections\n"
+                f"- Python range(n) → Java for (int i = 0; i < n; i++)\n"
+                f"- Python 'in' operator → Java .contains() or .containsKey()\n\n"
+                f"### COMMON MISTAKES TO AVOID:\n"
+                f"- Using array[i] syntax on List objects (use .get(i) instead)\n"
+                f"- Including 'import java.util.*;' or any import statement\n"
+                f"- Wrapping code in ```java ... ``` markdown blocks\n"
+                f"- Repeating the method signature that's already provided\n"
+                f"- Using Python syntax like ':' for blocks (use {{ }} in Java)\n\n"
+                f"### NOW TRANSLATE THIS PYTHON FUNCTION:\n\n"
+                f"Python code:\n"
                 f"{entry['prompt']}\n"
                 f"{entry['canonical_solution']}\n\n"
-                f"### Requirements:\n"
-                f"- Provide ONLY the method body (implementation inside the method)\n"
-                f"- Do NOT include the class definition or method signature\n"
-                f"- Do NOT include import statements\n"
-                f"- Ensure the code compiles and runs correctly in Java\n"
-                f"- Maintain the exact same logic and behavior as the Python version\n\n"
-                f"### Response:\n"
+                f"Provide ONLY the Java method body that implements this logic:\n"
             )
 
         # Prompt the model and get the response
@@ -109,15 +285,37 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
 
         print(f"Response:\n{response}\n")
 
-        # Process the response
-        # For this task, we're translating code, so we don't have a simple True/False verdict
-        # The verdict will be determined by running the tests (which happens in validation)
-        # For now, we check if the response contains Java-like code
+        # Process the response - ACTUALLY TEST THE CODE
         verdict = False
-        if "return" in response.lower() or "{" in response or ";" in response:
-            verdict = True
 
-        print(f"Contains Java-like code: {verdict}")
+        # Get the corresponding Java entry for testing
+        java_entry = java_dataset.get(entry['task_id'])
+
+        if java_entry:
+            # Extract the Java code from the response
+            java_code = extract_java_code(response)
+
+            try:
+                # Create a complete Java test file
+                complete_java_file = create_java_test_file(java_entry, java_code)
+
+                # Run the Java tests
+                verdict = run_java_test(complete_java_file, entry['task_id'])
+
+                if verdict:
+                    print(f"✓ Tests PASSED for {entry['task_id']}")
+                else:
+                    print(f"✗ Tests FAILED for {entry['task_id']}")
+
+            except Exception as e:
+                print(f"Error processing {entry['task_id']}: {e}")
+                verdict = False
+        else:
+            print(f"Warning: No Java test found for {entry['task_id']}")
+            # Fallback to basic check
+            verdict = False
+
+        print(f"is_correct: {verdict}")
         print("========================================")
 
         results.append({
