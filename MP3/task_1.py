@@ -20,7 +20,10 @@ def extract_java_code(response):
     Extract Java code from the model response.
     The response typically contains code in ```java ... ``` blocks.
     """
-    # Try to find code between ```java and ```
+    # Remove common explanatory prefixes
+    response = re.sub(r'^.*?(?:Here is|Here\'s).*?(?:Java|translation|version|code|implementation|method).*?:?\s*\n', '', response, flags=re.IGNORECASE)
+
+    # Try to find code between ```java and ``` (closed blocks)
     pattern = r'```java\s*(.*?)\s*```'
     matches = re.findall(pattern, response, re.DOTALL)
 
@@ -28,6 +31,14 @@ def extract_java_code(response):
         # Return the first code block found
         return matches[0].strip()
 
+    # Try to find code starting with ```java but not closed (truncated response)
+    pattern_open = r'```java\s*(.*?)$'
+    matches = re.findall(pattern_open, response, re.DOTALL)
+
+    if matches:
+        # Return the code even if block isn't closed
+        return matches[0].strip()
+    
     # If no code blocks found, try to extract anything that looks like a method
     # Look for public/private method declarations
     method_pattern = r'((?:public|private|protected|static|\s)+[\w<>\[\]]+\s+\w+\s*\([^\)]*\)\s*\{[\s\S]*?\n\})'
@@ -197,18 +208,19 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
             # Crafted prompt - enhanced with type hints while keeping DeepSeek format
             prompt = (
                 f"You are an expert programmer in both Python and Java languages."
-                f"Important Java type conversions:\n"
-                f"- Python list → Java List<Type> (use .get(i), .add(x), .size())\n"
-                f"- Python dict → Java Map<K,V> (use .get(k), .put(k,v), .containsKey(k))\n"
-                f"- Python str[i:j] → Java str.substring(i, j)\n"
-                f"- Python len() → Java .length() for String, .size() for collections\n"
-                f"- Use StringBuilder for string concatenation in loops\n\n"
-                f"### Instruction:\n"
                 f"Translate the following Python function to Java.\n\n"
+                
+                f"Python code:\n"
                 f"{entry['prompt']}\n"
                 f"{entry['canonical_solution']}\n\n"
-                f"Provide only the Java method implementation (the body of the method).\n"
-                "### Response:\n"
+                
+                f"Key conversions:\n"
+                f"- list → ArrayList, use .get(i), .add(x), .size()\n"
+                f"- dict → HashMap, use .get(k), .put(k,v), .containsKey(k)\n"
+                f"- str[i:j] → str.substring(i, j)\n"
+                f"- len() → .length() for strings, .size() for collections\n\n"
+                
+                f"Provide only the Java method implementation which is the body of the method. Do not include imports:\n"
             )
 
         print(f"Prompt:\n{prompt}\n")
@@ -217,7 +229,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
         outputs = model.generate(
             **inputs,
-            max_new_tokens=1000,
+            max_new_tokens=1500,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
