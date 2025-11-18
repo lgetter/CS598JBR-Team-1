@@ -85,6 +85,23 @@ def create_java_test_file(java_entry, translated_code):
     # Remove any class declarations or method signatures the model might have added
     method_body = translated_code
 
+    # Remove any lines that contain import statements
+    # This handles various import patterns:
+    # - import java.util.*;
+    # - import java.util.ArrayList;
+    # - import static java.lang.Math.*;
+    lines = method_body.split('\n')
+    filtered_lines = []
+    for line in lines:
+        stripped = line.strip()
+        # Skip lines that start with 'import' (case-insensitive)
+        # Also check if 'import' appears after whitespace at start of line
+        if not (stripped.startswith('import ') or 
+                stripped.startswith('import\t') or
+                re.match(r'^\s*import\s+', line, re.IGNORECASE)):
+            filtered_lines.append(line)
+    method_body = '\n'.join(filtered_lines)
+
     # Remove any standalone class declarations
     method_body = re.sub(r'class\s+\w+\s*\{[\s\S]*?\}', '', method_body)
 
