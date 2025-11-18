@@ -187,9 +187,10 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 "and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
                 "and other non-computer science questions, you will refuse to answer.\n"
                 "### Instruction:\n"
-                f"Can you translate the following Python code into Java? The new Java code must be enclosed between [Java Start] and [Java End]:\n\n"
+                f"Translate the following Python function to Java:\n\n"
                 f"{entry['prompt']}\n"
                 f"{entry['canonical_solution']}\n"
+                "Provide only the Java method implementation (the body of the method).\n"
                 "### Response:\n"
             )
         else:
