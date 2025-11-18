@@ -57,10 +57,10 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 {entry['buggy_solution']}
 
                 Important:
-                1. Reason through the answer step by step
-                2. Consider edge cases and data types
-                3. Your prediction must exactly match the expected output format
-                4. Enclose your final prediction between <start> and <end> tags. For example: <start>Buggy<end> or <start>Correct<end>.
+                1. If the code is buggy, give an explainaion of why it is buggy followed by <start>Buggy<end>.
+                2. If the code is correct, give an explainaion of why it is correct followed by <start>Correct<end>.
+                3. Enclose your final prediction between <start> and <end> tags. For example: <start>Buggy<end> or <start>Correct<end>.
+                4. The expected output form is strictly the reasoning followed by the prediction enclosed within <start> and <end> tags.
 
                 ### Response:
                 """)
@@ -69,7 +69,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
         outputs = model.generate(
             **inputs,
-            max_new_tokens=1000,
+            max_new_tokens=500,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
@@ -84,12 +84,12 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
 
         # Process the response and save it to results
         verdict = False
-        if "Buggy" in parsed_response:
+        if "Buggy" in parsed_response or "buggy" in parsed_response:
             verdict = True
 
         print(
             f"Expected output: Buggy\n"
-            f"Actual output: {response}\n"
+            # f"Actual output: {response}\n"
             f"Parsed output: {parsed_response}\n"
             f"Is correct: {verdict}\n"
         )
