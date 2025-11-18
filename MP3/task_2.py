@@ -84,12 +84,13 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
 
         # Process the response and save it to results
         verdict = False
-        if "Correct" in parsed_response:
+        if "Buggy" in parsed_response:
             verdict = True
 
         print(
             f"Expected output: Buggy\n"
             f"Actual output: {response}\n"
+            f"Parsed output: {parsed_response}\n"
             f"Is correct: {verdict}\n"
         )
 
