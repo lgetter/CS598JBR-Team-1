@@ -214,6 +214,8 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 "### Response:\n"
             )
 
+        print(f"Prompt:\n{prompt}\n")
+        
         # Prompt the model and get the response
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
         outputs = model.generate(
