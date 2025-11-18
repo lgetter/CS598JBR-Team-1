@@ -70,58 +70,89 @@ def load_java_dataset(seed):
 def create_java_test_file(java_entry, translated_code):
     """
     Create a complete Java file with the translated code and test.
+    Handles cases where the model returns:
+    1. Just method body
+    2. Complete method(s)
+    3. Complete class with imports and multiple methods
     """
-    # Extract the method signature from the prompt
-    prompt = java_entry['prompt']
-
-    # The prompt contains the class declaration and method signature
-    # We need to extract everything before the method body starts
-    # Typically ends with "public ReturnType methodName(params) {"
-
     # Get the declaration (imports + class + method signature)
     declaration = java_entry['declaration']
 
-    # Extract just the method body from translated_code
-    # Remove any class declarations or method signatures the model might have added
-    method_body = translated_code
-
-    # Remove any lines that contain import statements
-    # This handles various import patterns:
-    # - import java.util.*;
-    # - import java.util.ArrayList;
-    # - import static java.lang.Math.*;
-    lines = method_body.split('\n')
+    # Step 1: Remove any lines that contain import statements
+    lines = translated_code.split('\n')
     filtered_lines = []
     for line in lines:
         stripped = line.strip()
         # Skip lines that start with 'import' (case-insensitive)
-        # Also check if 'import' appears after whitespace at start of line
         if not (stripped.startswith('import ') or 
                 stripped.startswith('import\t') or
                 re.match(r'^\s*import\s+', line, re.IGNORECASE)):
             filtered_lines.append(line)
-    method_body = '\n'.join(filtered_lines)
+    code_without_imports = '\n'.join(filtered_lines)
 
-    # Remove any standalone class declarations
-    method_body = re.sub(r'class\s+\w+\s*\{[\s\S]*?\}', '', method_body)
+    # Step 2: Check if the code contains a class declaration
+    # If so, extract everything inside the class body
+    class_pattern = r'class\s+\w+\s*\{(.*)\}\s*$'
+    class_match = re.search(class_pattern, code_without_imports, re.DOTALL)
+    
+    if class_match:
+        # Extract the content inside the class (all methods)
+        class_body = class_match.group(1).strip()
+    else:
+        # No class declaration found, use the code as-is
+        class_body = code_without_imports.strip()
 
-    # Remove any method signatures (we'll use the one from the dataset)
-    method_body = re.sub(r'(public|private|protected|static|\s)+[\w<>\[\]]+\s+\w+\s*\([^\)]*\)\s*\{', '', method_body)
+    # Step 3: Extract the method signature from declaration to identify the main method
+    # The declaration ends with the method signature like "public ReturnType methodName(params) {"
+    # We need to find where this method ends in the class_body and extract everything after it
+    
+    # Try to find if the class_body starts with a method signature
+    # If it does, we have the complete method(s) and should use them directly
+    # If not, we need to extract just the body
+    
+    # Check if class_body starts with a method declaration (public/private/protected/static)
+    if re.match(r'^\s*(public|private|protected|static)', class_body, re.MULTILINE):
+        # The code contains complete method(s), use them directly
+        methods_content = class_body
+    else:
+        # The code is just method body content, wrap it properly
+        # Remove any leading/trailing braces
+        methods_content = class_body.strip()
+        if methods_content.startswith('{'):
+            methods_content = methods_content[1:].strip()
+        if methods_content.endswith('}'):
+            methods_content = methods_content[:-1].strip()
 
-    # Ensure the method body doesn't start with }
-    method_body = method_body.lstrip()
-    if method_body.startswith('}'):
-        method_body = method_body[1:].lstrip()
-
-    # Build the complete Java file
-    java_code = declaration + "\n" + method_body + "\n}\n"
+    # Step 4: Build the complete Java file
+    # Declaration already includes: imports + "class Solution {" + method signature + "{"
+    # We need to add the method body/bodies and close the class
+    
+    # Check if methods_content is just a method body or complete methods
+    if re.match(r'^\s*(public|private|protected|static)', methods_content, re.MULTILINE):
+        # Complete method(s) - don't add declaration's method signature
+        # Extract from declaration only imports + class declaration (without method signature)
+        decl_lines = declaration.split('\n')
+        imports_and_class = []
+        for line in decl_lines:
+            imports_and_class.append(line)
+            # Stop before the method signature (when we see "public" after "class Solution")
+            if 'class Solution' in line or 'class solution' in line.lower():
+                # Add the opening brace for the class
+                if '{' not in line:
+                    imports_and_class.append('{')
+                break
+        
+        # Combine: imports + class { + methods + }
+        java_code = '\n'.join(imports_and_class) + '\n' + methods_content + '\n}\n'
+    else:
+        # Just method body - use declaration as-is and add body
+        java_code = declaration + '\n' + methods_content + '\n}\n}\n'
 
     # Add the test code
     test_code = java_entry['test']
+    complete_code = java_code + '\n' + test_code
 
-    complete_code = java_code + "\n" + test_code
-
-    #print(f"Complete Java code for {java_entry['task_id']}:\n{complete_code}\n")
+    print(f"Complete Java code for {java_entry['task_id']}:\n{complete_code}\n")
     return complete_code
 
 def run_java_test(java_code, task_id):
