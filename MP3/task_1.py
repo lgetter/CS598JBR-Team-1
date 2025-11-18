@@ -78,7 +78,7 @@ def create_java_test_file(java_entry, translated_code):
     # Get the declaration (imports + class + method signature)
     declaration = java_entry['declaration']
 
-    # Step 1: Remove any lines that contain import statements
+    # Remove any lines that contain import statements
     lines = translated_code.split('\n')
     filtered_lines = []
     for line in lines:
@@ -90,8 +90,6 @@ def create_java_test_file(java_entry, translated_code):
             filtered_lines.append(line)
     code_without_imports = '\n'.join(filtered_lines)
 
-    # Step 2: Check if the code contains a class declaration
-    # If so, extract everything inside the class body
     class_pattern = r'class\s+\w+\s*\{(.*)\}\s*$'
     class_match = re.search(class_pattern, code_without_imports, re.DOTALL)
     
@@ -102,14 +100,7 @@ def create_java_test_file(java_entry, translated_code):
         # No class declaration found, use the code as-is
         class_body = code_without_imports.strip()
 
-    # Step 3: Extract the method signature from declaration to identify the main method
-    # The declaration ends with the method signature like "public ReturnType methodName(params) {"
-    # We need to find where this method ends in the class_body and extract everything after it
-    
-    # Try to find if the class_body starts with a method signature
-    # If it does, we have the complete method(s) and should use them directly
-    # If not, we need to extract just the body
-    
+
     # Check if class_body starts with a method declaration (public/private/protected/static)
     if re.match(r'^\s*(public|private|protected|static)', class_body, re.MULTILINE):
         # The code contains complete method(s), use them directly
@@ -122,10 +113,6 @@ def create_java_test_file(java_entry, translated_code):
             methods_content = methods_content[1:].strip()
         if methods_content.endswith('}'):
             methods_content = methods_content[:-1].strip()
-
-    # Step 4: Build the complete Java file
-    # Declaration already includes: imports + "class Solution {" + method signature + "{"
-    # We need to add the method body/bodies and close the class
     
     # Check if methods_content is just a method body or complete methods
     if re.match(r'^\s*(public|private|protected|static)', methods_content, re.MULTILINE):
