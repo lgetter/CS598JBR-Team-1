@@ -28,10 +28,8 @@ def extract_java_code(response):
     matches = re.findall(pattern, response, re.DOTALL)
 
     if matches:
-        code = matches[0].strip()
-        # Remove any trailing explanation after the code block
-        code = re.sub(r'\n\s*This\s+(Java\s+)?.*$', '', code, flags=re.IGNORECASE | re.DOTALL)
-        return code
+        # Return the first code block found
+        return matches[0].strip()
 
     # Try to find code starting with ```java but not closed (truncated response)
     pattern_open = r'```java\s*(.*?)$'
@@ -39,13 +37,7 @@ def extract_java_code(response):
 
     if matches:
         # Return the code even if block isn't closed
-        # Remove trailing incomplete statements
-        code = matches[0].strip()
-        # If code ends with incomplete line (no semicolon, brace, or close paren), remove it
-        lines = code.split('\n')
-        if lines and not re.search(r'[;{}\)]$', lines[-1].strip()):
-            code = '\n'.join(lines[:-1])
-        return code
+        return matches[0].strip()
 
     # If no code blocks found, try to extract anything that looks like a method
     # Look for public/private method declarations
@@ -78,46 +70,89 @@ def load_java_dataset(seed):
 def create_java_test_file(java_entry, translated_code):
     """
     Create a complete Java file with the translated code and test.
+    Handles cases where the model returns:
+    1. Just method body
+    2. Complete method(s)
+    3. Complete class with imports and multiple methods
     """
-    # Extract the method signature from the prompt
-    # prompt = java_entry['prompt']
-
-    # The prompt contains the class declaration and method signature
-    # We need to extract everything before the method body starts
-    # Typically ends with "public ReturnType methodName(params) {"
-
     # Get the declaration (imports + class + method signature)
     declaration = java_entry['declaration']
 
-    # Extract just the method body from translated_code
-    # Remove any class declarations or method signatures the model might have added
-    method_body = translated_code
+    # Step 1: Remove any lines that contain import statements
+    lines = translated_code.split('\n')
+    filtered_lines = []
+    for line in lines:
+        stripped = line.strip()
+        # Skip lines that start with 'import' (case-insensitive)
+        if not (stripped.startswith('import ') or
+                stripped.startswith('import\t') or
+                re.match(r'^\s*import\s+', line, re.IGNORECASE)):
+            filtered_lines.append(line)
+    code_without_imports = '\n'.join(filtered_lines)
 
-    # Remove import statements (they shouldn't be in the method body)
-    method_body = re.sub(r'import\s+[^;]+;\s*\n?', '', method_body, flags=re.MULTILINE)
+    # Step 2: Check if the code contains a class declaration
+    # If so, extract everything inside the class body
+    class_pattern = r'class\s+\w+\s*\{(.*)\}\s*$'
+    class_match = re.search(class_pattern, code_without_imports, re.DOTALL)
 
-    # Remove any main method
-    method_body = re.sub(r'public\s+static\s+void\s+main\s*\([^)]*\)\s*\{[^}]*\}', '', method_body, flags=re.DOTALL)
+    if class_match:
+        # Extract the content inside the class (all methods)
+        class_body = class_match.group(1).strip()
+    else:
+        # No class declaration found, use the code as-is
+        class_body = code_without_imports.strip()
 
-    # Remove any standalone class declarations
-    method_body = re.sub(r'class\s+\w+\s*\{[\s\S]*?\}', '', method_body)
+    # Step 3: Extract the method signature from declaration to identify the main method
+    # The declaration ends with the method signature like "public ReturnType methodName(params) {"
+    # We need to find where this method ends in the class_body and extract everything after it
 
-    # Remove any method signatures (we'll use the one from the dataset)
-    method_body = re.sub(r'(public|private|protected|static|\s)+[\w<>\[\],]+\s+\w+\s*\([^\)]*\)\s*\{', '', method_body)
+    # Try to find if the class_body starts with a method signature
+    # If it does, we have the complete method(s) and should use them directly
+    # If not, we need to extract just the body
 
-    # Ensure the method body doesn't start with }
-    method_body = method_body.lstrip()
-    if method_body.startswith('}'):
-        method_body = method_body[1:].lstrip()
+    # Check if class_body starts with a method declaration (public/private/protected/static)
+    if re.match(r'^\s*(public|private|protected|static)', class_body, re.MULTILINE):
+        # The code contains complete method(s), use them directly
+        methods_content = class_body
+    else:
+        # The code is just method body content, wrap it properly
+        # Remove any leading/trailing braces
+        methods_content = class_body.strip()
+        if methods_content.startswith('{'):
+            methods_content = methods_content[1:].strip()
+        if methods_content.endswith('}'):
+            methods_content = methods_content[:-1].strip()
 
-    # Build the complete Java file
-    java_code = declaration + "\n" + method_body + "\n}\n"
+    # Step 4: Build the complete Java file
+    # Declaration already includes: imports + "class Solution {" + method signature + "{"
+    # We need to add the method body/bodies and close the class
+
+    # Check if methods_content is just a method body or complete methods
+    if re.match(r'^\s*(public|private|protected|static)', methods_content, re.MULTILINE):
+        # Complete method(s) - don't add declaration's method signature
+        # Extract from declaration only imports + class declaration (without method signature)
+        decl_lines = declaration.split('\n')
+        imports_and_class = []
+        for line in decl_lines:
+            imports_and_class.append(line)
+            # Stop before the method signature (when we see "public" after "class Solution")
+            if 'class Solution' in line or 'class solution' in line.lower():
+                # Add the opening brace for the class
+                if '{' not in line:
+                    imports_and_class.append('{')
+                break
+
+        # Combine: imports + class { + methods + }
+        java_code = '\n'.join(imports_and_class) + '\n' + methods_content + '\n}\n'
+    else:
+        # Just method body - use declaration as-is and add body
+        java_code = declaration + '\n' + methods_content + '\n}\n}\n'
 
     # Add the test code
     test_code = java_entry['test']
+    complete_code = java_code + '\n' + test_code
 
-    complete_code = java_code + "\n" + test_code
-
+    print(f"Complete Java code for {java_entry['task_id']}:\n{complete_code}\n")
     return complete_code
 
 def run_java_test(java_code, task_id):
@@ -202,7 +237,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
     for entry in dataset:
         print(f"\n({i}/20) Processing Task_ID {entry['task_id']}...")
         i += 1
-
+        declaration = java_dataset.get(entry['task_id'])['declaration']
         # Create prompt for the model
         # The task is to translate Python code to Java
         if vanilla:
@@ -219,27 +254,37 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 "### Response:\n"
             )
         else:
-            # Crafted prompt - with example and clearer instructions
+            # Crafted prompt - enhanced with type hints while keeping DeepSeek format
             prompt = (
-                "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, "
-                "and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
-                "and other non-computer science questions, you will refuse to answer.\n"
+                f"You are an expert programmer in both Python and Java languages. \n"
                 "### Instruction:\n"
                 f"Translate the following Python function to Java.\n\n"
+                f"Python code:\n"
                 f"{entry['prompt']}\n"
                 f"{entry['canonical_solution']}\n\n"
-                "Important:\n"
-                "- Use List<Type> for collections, not arrays. Access with .get(i), .add(x), .size()\n"
-                "- Provide ONLY the method body code (no imports, no method signature, no explanations)\n"
-                "- Ensure all braces are properly closed\n"
+                f"Important conversions:\n"
+                f"- list → ArrayList<Type>: use .get(i), .add(x), .size()\n"
+                f"- dict → HashMap<K,V>: use .get(k), .put(k,v), .containsKey(k)\n"
+                f"- str[i:j] → str.substring(i, j)\n"
+                f"- str[::-1] → new StringBuilder(str).reverse().toString()\n"
+                f"- len() → .length() for strings, .size() for collections\n"
+                f"- List comprehensions → use loops or streams\n"
+                f"- zip(a, b) → iterate with index: for(int i=0; i<a.size(); i++)\n"
+                f"- enumerate() → use for loop with index variable\n"
+                f"- ''.join(list) → String.join(\"\", list) or StringBuilder\n\n"
+                f"Expected declaration and method signature in Java:\n"
+                f"{declaration}\n\n"
+                "Provide only the Java method implementation (the body of the method).\n"
                 "### Response:\n"
             )
+
+        #print(f"Prompt:\n{prompt}\n")
 
         # Prompt the model and get the response
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
         outputs = model.generate(
             **inputs,
-            max_new_tokens=2048,
+            max_new_tokens=1500,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
@@ -249,7 +294,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         new_tokens = outputs[0][input_length:]
         response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
-        print(f"Response:\n{response}\n")
+        #print(f"Response:\n{response}\n")
 
         # Process the response - ACTUALLY TEST THE CODE
         verdict = False
