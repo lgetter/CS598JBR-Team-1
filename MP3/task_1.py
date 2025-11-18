@@ -106,10 +106,6 @@ def create_java_test_file(java_entry, translated_code):
     # The declaration ends with the method signature like "public ReturnType methodName(params) {"
     # We need to find where this method ends in the class_body and extract everything after it
 
-    # Try to find if the class_body starts with a method signature
-    # If it does, we have the complete method(s) and should use them directly
-    # If not, we need to extract just the body
-
     # Check if class_body starts with a method declaration (public/private/protected/static)
     if re.match(r'^\s*(public|private|protected|static)', class_body, re.MULTILINE):
         # The code contains complete method(s), use them directly
@@ -152,7 +148,7 @@ def create_java_test_file(java_entry, translated_code):
     test_code = java_entry['test']
     complete_code = java_code + '\n' + test_code
 
-    print(f"Complete Java code for {java_entry['task_id']}:\n{complete_code}\n")
+    #print(f"Complete Java code for {java_entry['task_id']}:\n{complete_code}\n")
     return complete_code
 
 def run_java_test(java_code, task_id):
@@ -294,7 +290,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         new_tokens = outputs[0][input_length:]
         response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
-        #print(f"Response:\n{response}\n")
+        print(f"Response:\n{response}\n")
 
         # Process the response - ACTUALLY TEST THE CODE
         verdict = False
