@@ -28,8 +28,10 @@ def extract_java_code(response):
     matches = re.findall(pattern, response, re.DOTALL)
 
     if matches:
-        # Return the first code block found
-        return matches[0].strip()
+        code = matches[0].strip()
+        # Remove any trailing explanation after the code block
+        code = re.sub(r'\n\s*This\s+(Java\s+)?.*$', '', code, flags=re.IGNORECASE | re.DOTALL)
+        return code
 
     # Try to find code starting with ```java but not closed (truncated response)
     pattern_open = r'```java\s*(.*?)$'
@@ -37,7 +39,13 @@ def extract_java_code(response):
 
     if matches:
         # Return the code even if block isn't closed
-        return matches[0].strip()
+        # Remove trailing incomplete statements
+        code = matches[0].strip()
+        # If code ends with incomplete line (no semicolon, brace, or close paren), remove it
+        lines = code.split('\n')
+        if lines and not re.search(r'[;{}\)]$', lines[-1].strip()):
+            code = '\n'.join(lines[:-1])
+        return code
 
     # If no code blocks found, try to extract anything that looks like a method
     # Look for public/private method declarations
@@ -86,14 +94,16 @@ def create_java_test_file(java_entry, translated_code):
     method_body = translated_code
 
     # Remove import statements (they shouldn't be in the method body)
-    method_body = re.sub(r'import\s+[\w\.]+\s*;?\s*\n?', '', method_body)
-    method_body = re.sub(r'import\s+[\w\.]+\.\*\s*;?\s*\n?', '', method_body)
+    method_body = re.sub(r'import\s+[^;]+;\s*\n?', '', method_body, flags=re.MULTILINE)
+
+    # Remove any main method
+    method_body = re.sub(r'public\s+static\s+void\s+main\s*\([^)]*\)\s*\{[^}]*\}', '', method_body, flags=re.DOTALL)
 
     # Remove any standalone class declarations
     method_body = re.sub(r'class\s+\w+\s*\{[\s\S]*?\}', '', method_body)
 
     # Remove any method signatures (we'll use the one from the dataset)
-    method_body = re.sub(r'(public|private|protected|static|\s)+[\w<>\[\]]+\s+\w+\s*\([^\)]*\)\s*\{', '', method_body)
+    method_body = re.sub(r'(public|private|protected|static|\s)+[\w<>\[\],]+\s+\w+\s*\([^\)]*\)\s*\{', '', method_body)
 
     # Ensure the method body doesn't start with }
     method_body = method_body.lstrip()
@@ -209,16 +219,15 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 "### Response:\n"
             )
         else:
-            # Crafted prompt - minimal enhancement to vanilla
+            # Crafted prompt - concise with focused hint
             prompt = (
                 "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, "
                 "and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
                 "and other non-computer science questions, you will refuse to answer.\n"
                 "### Instruction:\n"
-                f"Translate the following Python function to Java:\n\n"
+                f"Translate the following Python function to Java. Use List<Type> instead of arrays for dynamic collections.\n\n"
                 f"{entry['prompt']}\n"
                 f"{entry['canonical_solution']}\n\n"
-                f"Important: When translating Python lists to Java, use List<Type> with .get(i), .add(x), and .size() methods instead of array notation.\n"
                 "Provide only the Java method implementation (the body of the method).\n"
                 "### Response:\n"
             )
