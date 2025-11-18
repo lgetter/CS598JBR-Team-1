@@ -219,16 +219,19 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 "### Response:\n"
             )
         else:
-            # Crafted prompt - concise with focused hint
+            # Crafted prompt - with example and clearer instructions
             prompt = (
                 "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, "
                 "and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
                 "and other non-computer science questions, you will refuse to answer.\n"
                 "### Instruction:\n"
-                f"Translate the following Python function to Java. Use List<Type> instead of arrays for dynamic collections.\n\n"
+                f"Translate the following Python function to Java.\n\n"
                 f"{entry['prompt']}\n"
                 f"{entry['canonical_solution']}\n\n"
-                "Provide only the Java method implementation (the body of the method).\n"
+                "Important:\n"
+                "- Use List<Type> for collections, not arrays. Access with .get(i), .add(x), .size()\n"
+                "- Provide ONLY the method body code (no imports, no method signature, no explanations)\n"
+                "- Ensure all braces are properly closed\n"
                 "### Response:\n"
             )
 
@@ -236,7 +239,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
         outputs = model.generate(
             **inputs,
-            max_new_tokens=1500,
+            max_new_tokens=2048,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
