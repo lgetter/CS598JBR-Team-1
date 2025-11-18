@@ -20,12 +20,23 @@ def extract_java_code(response):
     Extract Java code from the model response.
     The response typically contains code in ```java ... ``` blocks.
     """
-    # Try to find code between ```java and ```
+    # Remove common explanatory prefixes
+    response = re.sub(r'^.*?(?:Here is|Here\'s).*?(?:Java|translation|version|code|implementation|method).*?:?\s*\n', '', response, flags=re.IGNORECASE)
+
+    # Try to find code between ```java and ``` (closed blocks)
     pattern = r'```java\s*(.*?)\s*```'
     matches = re.findall(pattern, response, re.DOTALL)
 
     if matches:
         # Return the first code block found
+        return matches[0].strip()
+
+    # Try to find code starting with ```java but not closed (truncated response)
+    pattern_open = r'```java\s*(.*?)$'
+    matches = re.findall(pattern_open, response, re.DOTALL)
+
+    if matches:
+        # Return the code even if block isn't closed
         return matches[0].strip()
 
     # If no code blocks found, try to extract anything that looks like a method
@@ -216,7 +227,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
         outputs = model.generate(
             **inputs,
-            max_new_tokens=1000,
+            max_new_tokens=1500,
             do_sample=False,
             pad_token_id=tokenizer.eos_token_id,
         )
