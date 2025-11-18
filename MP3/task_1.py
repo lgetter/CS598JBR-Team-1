@@ -294,7 +294,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         new_tokens = outputs[0][input_length:]
         response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
-        print(f"Response:\n{response}\n")
+        #print(f"Response:\n{response}\n")
 
         # Process the response - ACTUALLY TEST THE CODE
         verdict = False
@@ -305,7 +305,6 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         if java_entry:
             # Extract the Java code from the response
             java_code = extract_java_code(response)
-            print(f"Extracted Java code for {entry['task_id']}:\n{java_code}\n")
 
             try:
                 # Create a complete Java test file
