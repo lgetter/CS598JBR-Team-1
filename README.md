@@ -11,4 +11,4 @@
 
 - MP1 - [MP1 link](https://colab.research.google.com/drive/13jHSh11eybGwihpI7hpLsqFMvHyTPGSt?usp=sharing)
 - MP2 - [MP2 link](https://colab.research.google.com/drive/1Rx8AmzXsm3TVoBoxAnWN6vgr4CRSK3rr?usp=sharing)
-- MP3 - [MP3 link](URL)
+- MP3 - [MP3 link](https://colab.research.google.com/drive/1idX2RT3keCF_x7PlWm3JWbpG7RZDy3Ba?usp=sharing)
