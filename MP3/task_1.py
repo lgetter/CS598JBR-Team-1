@@ -196,26 +196,23 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         else:
             # Crafted prompt - enhanced with type hints while keeping DeepSeek format
             prompt = (
-                "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, "
-                "and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
-                "and other non-computer science questions, you will refuse to answer.\n"
-                "### Instruction:\n"
-                f"Translate the following Python function to Java.\n\n"
+                f"You are an expert programmer in both Python and Java languages."
                 f"Important Java type conversions:\n"
                 f"- Python list → Java List<Type> (use .get(i), .add(x), .size())\n"
                 f"- Python dict → Java Map<K,V> (use .get(k), .put(k,v), .containsKey(k))\n"
                 f"- Python str[i:j] → Java str.substring(i, j)\n"
                 f"- Python len() → Java .length() for String, .size() for collections\n"
                 f"- Use StringBuilder for string concatenation in loops\n\n"
-                f"Python code:\n"
+                f"### Instruction:\n"
+                f"Translate the following Python function to Java.\n\n"
                 f"{entry['prompt']}\n"
                 f"{entry['canonical_solution']}\n\n"
-                f"Provide only the Java method implementation (the body of the method, without imports or method signature).\n"
+                f"Provide only the Java method implementation (the body of the method).\n"
                 "### Response:\n"
             )
 
         print(f"Prompt:\n{prompt}\n")
-        
+
         # Prompt the model and get the response
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
         outputs = model.generate(
