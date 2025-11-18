@@ -207,20 +207,26 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         else:
             # Crafted prompt - enhanced with type hints while keeping DeepSeek format
             prompt = (
-                f"You are an expert programmer in both Python and Java languages."
+                f"You are an expert programmer in both Python and Java languages. \n"
+                "### Instruction:\n"                
                 f"Translate the following Python function to Java.\n\n"
-                
                 f"Python code:\n"
                 f"{entry['prompt']}\n"
                 f"{entry['canonical_solution']}\n\n"
                 
-                f"Key conversions:\n"
-                f"- list → ArrayList, use .get(i), .add(x), .size()\n"
-                f"- dict → HashMap, use .get(k), .put(k,v), .containsKey(k)\n"
+                f"Important conversions:\n"
+                f"- list → ArrayList<Type>: use .get(i), .add(x), .size()\n"
+                f"- dict → HashMap<K,V>: use .get(k), .put(k,v), .containsKey(k)\n"
                 f"- str[i:j] → str.substring(i, j)\n"
-                f"- len() → .length() for strings, .size() for collections\n\n"
+                f"- str[::-1] → new StringBuilder(str).reverse().toString()\n"
+                f"- len() → .length() for strings, .size() for collections\n"
+                f"- List comprehensions → use loops or streams\n"
+                f"- zip(a, b) → iterate with index: for(int i=0; i<a.size(); i++)\n"
+                f"- enumerate() → use for loop with index variable\n"
+                f"- ''.join(list) → String.join(\"\", list) or StringBuilder\n\n"
                 
-                f"Provide only the Java method implementation which is the body of the method. Do not include imports:\n"
+                "Provide only the Java method implementation (the body of the method) and do not include imports.\n"
+                "### Response:\n"
             )
 
         print(f"Prompt:\n{prompt}\n")
