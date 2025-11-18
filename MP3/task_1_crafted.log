@@ -1,16 +1,16 @@
-2025-11-18 02:21:25.409623: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
-2025-11-18 02:21:25.427762: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2025-11-18 03:22:35.107369: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-11-18 03:22:35.124190: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
 WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-E0000 00:00:1763432485.450169    7699 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
-E0000 00:00:1763432485.456712    7699 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
-W0000 00:00:1763432485.473852    7699 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
-W0000 00:00:1763432485.473879    7699 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
-W0000 00:00:1763432485.473881    7699 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
-W0000 00:00:1763432485.473883    7699 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
-2025-11-18 02:21:25.479063: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+E0000 00:00:1763436155.145335    7011 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1763436155.151769    7011 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1763436155.168048    7011 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1763436155.168075    7011 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1763436155.168077    7011 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1763436155.168079    7011 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+2025-11-18 03:22:35.172928: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
 To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
 Working with deepseek-ai/deepseek-coder-6.7b-instruct prompt type False...
-Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:12<00:12, 12.73s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:17<00:00,  7.77s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:17<00:00,  8.51s/it]
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:12<00:12, 12.28s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:16<00:00,  7.49s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:16<00:00,  8.20s/it]
 
 (1/20) Processing Task_ID HumanEval/11...
 Complete Java code for HumanEval/11:
@@ -927,7 +927,7 @@ public class Main {
 }
 
 Compilation failed for HumanEval/56:
-/tmp/tmpfatepwxb/Main.java:42: error: reached end of file while parsing
+/tmp/tmplquyzzn0/Main.java:42: error: reached end of file while parsing
 }
  ^
 1 error

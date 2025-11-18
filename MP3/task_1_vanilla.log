@@ -1,17 +1,17 @@
-2025-11-18 02:13:23.957436: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
-2025-11-18 02:13:23.974859: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2025-11-18 03:14:47.983255: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-11-18 03:14:48.000432: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
 WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
-E0000 00:00:1763432003.996776    4826 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
-E0000 00:00:1763432004.003316    4826 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
-W0000 00:00:1763432004.020054    4826 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
-W0000 00:00:1763432004.020088    4826 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
-W0000 00:00:1763432004.020090    4826 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
-W0000 00:00:1763432004.020092    4826 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
-2025-11-18 02:13:24.025107: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+E0000 00:00:1763435688.022395    4222 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1763435688.029017    4222 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1763435688.045591    4222 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1763435688.045614    4222 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1763435688.045616    4222 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1763435688.045618    4222 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+2025-11-18 03:14:48.050819: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
 To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
 Working with deepseek-ai/deepseek-coder-6.7b-instruct prompt type True...
-Fetching 2 files:   0%|          | 0/2 [00:00<?, ?it/s]Fetching 2 files:  50%|█████     | 1/2 [00:31<00:31, 31.65s/it]Fetching 2 files: 100%|██████████| 2/2 [00:31<00:00, 15.82s/it]
-Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:12<00:12, 12.48s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:16<00:00,  7.56s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:16<00:00,  8.30s/it]
+Fetching 2 files:   0%|          | 0/2 [00:00<?, ?it/s]Fetching 2 files:  50%|█████     | 1/2 [00:31<00:31, 31.87s/it]Fetching 2 files: 100%|██████████| 2/2 [00:31<00:00, 15.93s/it]
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:12<00:12, 12.14s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:16<00:00,  7.38s/it]Loading checkpoint shards: 100%|██████████| 2/2 [00:16<00:00,  8.09s/it]
 
 (1/20) Processing Task_ID HumanEval/11...
 Complete Java code for HumanEval/11:
@@ -238,32 +238,32 @@ public class Main {
 }
 
 Compilation failed for HumanEval/152:
-/tmp/tmpiss3kp0o/Main.java:18: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
+/tmp/tmpe4mejxnr/Main.java:18: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
                 s.compare(Arrays.asList(1, 2, 3, 4, 5, 1), Arrays.asList(1, 2, 3, 4, 2, -2)).equals(Arrays.asList(0, 0, 0, 0, 3, 3)),
                  ^
   where T is a type-variable:
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpiss3kp0o/Main.java:19: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
+/tmp/tmpe4mejxnr/Main.java:19: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
                 s.compare(Arrays.asList(0,5,0,0,0,4), Arrays.asList(4,1,1,0,0,-2)).equals(Arrays.asList(4,4,1,0,0,6)),
                  ^
   where T is a type-variable:
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpiss3kp0o/Main.java:20: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
+/tmp/tmpe4mejxnr/Main.java:20: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
                 s.compare(Arrays.asList(1, 2, 3, 4, 5, 1), Arrays.asList(1, 2, 3, 4, 2, -2)).equals(Arrays.asList(0, 0, 0, 0, 3, 3)),
                  ^
   where T is a type-variable:
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpiss3kp0o/Main.java:21: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
+/tmp/tmpe4mejxnr/Main.java:21: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
                 s.compare(Arrays.asList(0, 0, 0, 0, 0, 0), Arrays.asList(0, 0, 0, 0, 0, 0)).equals(Arrays.asList(0, 0, 0, 0, 0, 0)),
                  ^
   where T is a type-variable:
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpiss3kp0o/Main.java:22: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
+/tmp/tmpe4mejxnr/Main.java:22: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
                 s.compare(Arrays.asList(1, 2, 3), Arrays.asList(-1, -2, -3)).equals(Arrays.asList(2, 4, 6)),
                  ^
   where T is a type-variable:
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpiss3kp0o/Main.java:23: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
+/tmp/tmpe4mejxnr/Main.java:23: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
                 s.compare(Arrays.asList(1, 2, 3, 5), Arrays.asList(-1, 2, 3, 4)).equals(Arrays.asList(2, 0, 0, 1))
                  ^
   where T is a type-variable:
@@ -317,42 +317,42 @@ public class Main {
 }
 
 Compilation failed for HumanEval/125:
-/tmp/tmpx79uuq1d/Main.java:25: error: cannot find symbol
+/tmp/tmpvzq14gt9/Main.java:25: error: cannot find symbol
                 Objects.equals(s.splitWords("Hello world!" ), Arrays.asList("Hello", "world!" )),
                                 ^
   symbol:   method splitWords(String)
   location: variable s of type Solution
-/tmp/tmpx79uuq1d/Main.java:26: error: cannot find symbol
+/tmp/tmpvzq14gt9/Main.java:26: error: cannot find symbol
                 Objects.equals(s.splitWords("Hello,world!" ), Arrays.asList("Hello", "world!" )),
                                 ^
   symbol:   method splitWords(String)
   location: variable s of type Solution
-/tmp/tmpx79uuq1d/Main.java:27: error: cannot find symbol
+/tmp/tmpvzq14gt9/Main.java:27: error: cannot find symbol
                 Objects.equals(s.splitWords("Hello world,!" ), Arrays.asList("Hello", "world,!" )),
                                 ^
   symbol:   method splitWords(String)
   location: variable s of type Solution
-/tmp/tmpx79uuq1d/Main.java:28: error: cannot find symbol
+/tmp/tmpvzq14gt9/Main.java:28: error: cannot find symbol
                 Objects.equals(s.splitWords("Hello,Hello,world !" ), Arrays.asList("Hello,Hello,world", "!" )),
                                 ^
   symbol:   method splitWords(String)
   location: variable s of type Solution
-/tmp/tmpx79uuq1d/Main.java:29: error: cannot find symbol
+/tmp/tmpvzq14gt9/Main.java:29: error: cannot find symbol
                 Objects.equals(s.splitWords("abcdef" ), 3),
                                 ^
   symbol:   method splitWords(String)
   location: variable s of type Solution
-/tmp/tmpx79uuq1d/Main.java:30: error: cannot find symbol
+/tmp/tmpvzq14gt9/Main.java:30: error: cannot find symbol
                 Objects.equals(s.splitWords("aaabb" ), 2),
                                 ^
   symbol:   method splitWords(String)
   location: variable s of type Solution
-/tmp/tmpx79uuq1d/Main.java:31: error: cannot find symbol
+/tmp/tmpvzq14gt9/Main.java:31: error: cannot find symbol
                 Objects.equals(s.splitWords("aaaBb" ), 1),
                                 ^
   symbol:   method splitWords(String)
   location: variable s of type Solution
-/tmp/tmpx79uuq1d/Main.java:32: error: cannot find symbol
+/tmp/tmpvzq14gt9/Main.java:32: error: cannot find symbol
                 Objects.equals(s.splitWords("" ), 0)
                                 ^
   symbol:   method splitWords(String)
@@ -394,33 +394,33 @@ public class Main {
 }
 
 Compilation failed for HumanEval/160:
-/tmp/tmpvzdfekcd/Main.java:10: error: cannot find symbol
+/tmp/tmpn42hqr97/Main.java:10: error: cannot find symbol
     return eval(expression.toString());
            ^
   symbol:   method eval(String)
   location: class Solution
-/tmp/tmpvzdfekcd/Main.java:18: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmpn42hqr97/Main.java:18: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.doAlgebra(new ArrayList<>(Arrays.asList("**", "*", "+")), new ArrayList<>(Arrays.asList(2, 3, 4, 5))) == 37,
                                          ^
     reason: no instance(s) of type variable(s) E,T exist so that ArrayList<E> conforms to String[]
   where E,T are type-variables:
     E extends Object declared in class ArrayList
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpvzdfekcd/Main.java:19: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmpn42hqr97/Main.java:19: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.doAlgebra(new ArrayList<>(Arrays.asList("+", "*", "-")), new ArrayList<>(Arrays.asList(2, 3, 4, 5))) == 9,
                                          ^
     reason: no instance(s) of type variable(s) E,T exist so that ArrayList<E> conforms to String[]
   where E,T are type-variables:
     E extends Object declared in class ArrayList
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpvzdfekcd/Main.java:20: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmpn42hqr97/Main.java:20: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.doAlgebra(new ArrayList<>(Arrays.asList("/", "*")), new ArrayList<>(Arrays.asList(7, 3, 4))) == 8,
                                          ^
     reason: no instance(s) of type variable(s) E,T exist so that ArrayList<E> conforms to String[]
   where E,T are type-variables:
     E extends Object declared in class ArrayList
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpvzdfekcd/Main.java:21: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmpn42hqr97/Main.java:21: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.doAlgebra(new ArrayList<>(Arrays.asList("+", "**", "**")), new ArrayList<>(Arrays.asList(7, 5, 3, 2))) == 1953132
                                          ^
     reason: no instance(s) of type variable(s) E,T exist so that ArrayList<E> conforms to String[]
@@ -471,49 +471,49 @@ public class Main {
 }
 
 Compilation failed for HumanEval/90:
-/tmp/tmp21we3a3w/Main.java:21: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmp26d7o0t2/Main.java:21: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.nextSmallest(new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5))).get() == 2,
                                             ^
     reason: no instance(s) of type variable(s) E,T exist so that ArrayList<E> conforms to Integer[]
   where E,T are type-variables:
     E extends Object declared in class ArrayList
     T extends Object declared in method <T>asList(T...)
-/tmp/tmp21we3a3w/Main.java:22: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmp26d7o0t2/Main.java:22: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.nextSmallest(new ArrayList<>(Arrays.asList(5, 1, 4, 3, 2))).get() == 2,
                                             ^
     reason: no instance(s) of type variable(s) E,T exist so that ArrayList<E> conforms to Integer[]
   where E,T are type-variables:
     E extends Object declared in class ArrayList
     T extends Object declared in method <T>asList(T...)
-/tmp/tmp21we3a3w/Main.java:23: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmp26d7o0t2/Main.java:23: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.nextSmallest(new ArrayList<>(List.of())).isEmpty(),
                                             ^
     reason: no instance(s) of type variable(s) E#1,E#2 exist so that ArrayList<E#1> conforms to Integer[]
   where E#1,E#2 are type-variables:
     E#1 extends Object declared in class ArrayList
     E#2 extends Object declared in method <E#2>of()
-/tmp/tmp21we3a3w/Main.java:24: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmp26d7o0t2/Main.java:24: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.nextSmallest(new ArrayList<>(Arrays.asList(1, 1))).isEmpty(),
                                             ^
     reason: no instance(s) of type variable(s) E,T exist so that ArrayList<E> conforms to Integer[]
   where E,T are type-variables:
     E extends Object declared in class ArrayList
     T extends Object declared in method <T>asList(T...)
-/tmp/tmp21we3a3w/Main.java:25: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmp26d7o0t2/Main.java:25: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.nextSmallest(new ArrayList<>(Arrays.asList(1, 1, 1, 1, 0))).get() == 1,
                                             ^
     reason: no instance(s) of type variable(s) E,T exist so that ArrayList<E> conforms to Integer[]
   where E,T are type-variables:
     E extends Object declared in class ArrayList
     T extends Object declared in method <T>asList(T...)
-/tmp/tmp21we3a3w/Main.java:26: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmp26d7o0t2/Main.java:26: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.nextSmallest(new ArrayList<>(Arrays.asList(1, (int) Math.pow(0.0, 0.0)))).isEmpty(),
                                             ^
     reason: no instance(s) of type variable(s) E,T exist so that ArrayList<E> conforms to Integer[]
   where E,T are type-variables:
     E extends Object declared in class ArrayList
     T extends Object declared in method <T>asList(T...)
-/tmp/tmp21we3a3w/Main.java:27: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmp26d7o0t2/Main.java:27: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.nextSmallest(new ArrayList<>(Arrays.asList(-35, 34, 12, -45))).get() == -35
                                             ^
     reason: no instance(s) of type variable(s) E,T exist so that ArrayList<E> conforms to Integer[]
@@ -565,10 +565,10 @@ public class Main {
 }
 
 Compilation failed for HumanEval/142:
-/tmp/tmpmpwmmrak/Main.java:14: error: illegal start of expression
+/tmp/tmpwsppylrs/Main.java:14: error: illegal start of expression
 public class Main {
 ^
-/tmp/tmpmpwmmrak/Main.java:34: error: reached end of file while parsing
+/tmp/tmpwsppylrs/Main.java:34: error: reached end of file while parsing
 }
  ^
 2 errors
@@ -762,57 +762,57 @@ public class Main {
 }
 
 Compilation failed for HumanEval/136:
-/tmp/tmpwv7860i9/Main.java:44: error: cannot find symbol
+/tmp/tmpq3v7950g/Main.java:44: error: cannot find symbol
                 s.largestSmallestIntegers(Arrays.asList(2, 4, 1, 3, 5, 7)).equals(Arrays.asList(Optional.empty(), Optional.of(1))),
                  ^
   symbol:   method largestSmallestIntegers(List<Integer>)
   location: variable s of type Solution
-/tmp/tmpwv7860i9/Main.java:45: error: cannot find symbol
+/tmp/tmpq3v7950g/Main.java:45: error: cannot find symbol
                 s.largestSmallestIntegers(Arrays.asList(2, 4, 1, 3, 5, 7, 0)).equals(Arrays.asList(Optional.empty(), Optional.of(1))),
                  ^
   symbol:   method largestSmallestIntegers(List<Integer>)
   location: variable s of type Solution
-/tmp/tmpwv7860i9/Main.java:46: error: cannot find symbol
+/tmp/tmpq3v7950g/Main.java:46: error: cannot find symbol
                 s.largestSmallestIntegers(Arrays.asList(1, 3, 2, 4, 5, 6, -2)).equals(Arrays.asList(Optional.of(-2), Optional.of(1))),
                  ^
   symbol:   method largestSmallestIntegers(List<Integer>)
   location: variable s of type Solution
-/tmp/tmpwv7860i9/Main.java:47: error: cannot find symbol
+/tmp/tmpq3v7950g/Main.java:47: error: cannot find symbol
                 s.largestSmallestIntegers(Arrays.asList(4, 5, 3, 6, 2, 7, -7)).equals(Arrays.asList(Optional.of(-7), Optional.of(2))),
                  ^
   symbol:   method largestSmallestIntegers(List<Integer>)
   location: variable s of type Solution
-/tmp/tmpwv7860i9/Main.java:48: error: cannot find symbol
+/tmp/tmpq3v7950g/Main.java:48: error: cannot find symbol
                 s.largestSmallestIntegers(Arrays.asList(7, 3, 8, 4, 9, 2, 5, -9)).equals(Arrays.asList(Optional.of(-9), Optional.of(2))),
                  ^
   symbol:   method largestSmallestIntegers(List<Integer>)
   location: variable s of type Solution
-/tmp/tmpwv7860i9/Main.java:49: error: cannot find symbol
+/tmp/tmpq3v7950g/Main.java:49: error: cannot find symbol
                 s.largestSmallestIntegers(List.of()).equals(Arrays.asList(Optional.empty(), Optional.empty())),
                  ^
   symbol:   method largestSmallestIntegers(List<Object>)
   location: variable s of type Solution
-/tmp/tmpwv7860i9/Main.java:50: error: cannot find symbol
+/tmp/tmpq3v7950g/Main.java:50: error: cannot find symbol
                 s.largestSmallestIntegers(List.of(0)).equals(Arrays.asList(Optional.empty(), Optional.empty())),
                  ^
   symbol:   method largestSmallestIntegers(List<Integer>)
   location: variable s of type Solution
-/tmp/tmpwv7860i9/Main.java:51: error: cannot find symbol
+/tmp/tmpq3v7950g/Main.java:51: error: cannot find symbol
                 s.largestSmallestIntegers(Arrays.asList(-1, -3, -5, -6)).equals(Arrays.asList(Optional.of(-1), Optional.empty())),
                  ^
   symbol:   method largestSmallestIntegers(List<Integer>)
   location: variable s of type Solution
-/tmp/tmpwv7860i9/Main.java:52: error: cannot find symbol
+/tmp/tmpq3v7950g/Main.java:52: error: cannot find symbol
                 s.largestSmallestIntegers(Arrays.asList(-1, -3, -5, -6, 0)).equals(Arrays.asList(Optional.of(-1), Optional.empty())),
                  ^
   symbol:   method largestSmallestIntegers(List<Integer>)
   location: variable s of type Solution
-/tmp/tmpwv7860i9/Main.java:53: error: cannot find symbol
+/tmp/tmpq3v7950g/Main.java:53: error: cannot find symbol
                 s.largestSmallestIntegers(Arrays.asList(-6, -4, -4, -3, 1)).equals(Arrays.asList(Optional.of(-3), Optional.of(1))),
                  ^
   symbol:   method largestSmallestIntegers(List<Integer>)
   location: variable s of type Solution
-/tmp/tmpwv7860i9/Main.java:54: error: cannot find symbol
+/tmp/tmpq3v7950g/Main.java:54: error: cannot find symbol
                 s.largestSmallestIntegers(Arrays.asList(-6, -4, -4, -3, -100, 1)).equals(Arrays.asList(Optional.of(-3), Optional.of(1)))
                  ^
   symbol:   method largestSmallestIntegers(List<Integer>)
@@ -939,27 +939,27 @@ public class Main {
 }
 
 Compilation failed for HumanEval/122:
-/tmp/tmpvj7ac2e9/Main.java:20: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
+/tmp/tmp932mqjk8/Main.java:20: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
                 s.addElements(Arrays.asList(1, -2, -3, 41, 57, 76, 87, 88, 99), 3) == -4,
                  ^
   where T is a type-variable:
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpvj7ac2e9/Main.java:21: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
+/tmp/tmp932mqjk8/Main.java:21: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
                 s.addElements(Arrays.asList(111, 121, 3, 4000, 5, 6), 2) == 0,
                  ^
   where T is a type-variable:
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpvj7ac2e9/Main.java:22: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
+/tmp/tmp932mqjk8/Main.java:22: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
                 s.addElements(Arrays.asList(11, 21, 3, 90, 5, 6, 7, 8, 9), 4) == 125,
                  ^
   where T is a type-variable:
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpvj7ac2e9/Main.java:23: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
+/tmp/tmp932mqjk8/Main.java:23: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
                 s.addElements(Arrays.asList(111, 21, 3, 4000, 5, 6, 7, 8, 9), 4) == 24,
                  ^
   where T is a type-variable:
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpvj7ac2e9/Main.java:24: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
+/tmp/tmp932mqjk8/Main.java:24: error: incompatible types: no instance(s) of type variable(s) T exist so that List<T> conforms to int[]
                 s.addElements(Arrays.asList(1), 1) == 1
                  ^
   where T is a type-variable:
@@ -1003,35 +1003,35 @@ public class Main {
 }
 
 Compilation failed for HumanEval/62:
-/tmp/tmpwmm09ufw/Main.java:18: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmpc_h59xt8/Main.java:18: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.derivative(new ArrayList<>(Arrays.asList(3, 1, 2, 4, 5))).equals(Arrays.asList(1, 4, 12, 20)),
                                           ^
     reason: no instance(s) of type variable(s) E,T exist so that ArrayList<E> conforms to int[]
   where E,T are type-variables:
     E extends Object declared in class ArrayList
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpwmm09ufw/Main.java:19: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmpc_h59xt8/Main.java:19: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.derivative(new ArrayList<>(Arrays.asList(1, 2, 3))).equals(Arrays.asList(2, 6)),
                                           ^
     reason: no instance(s) of type variable(s) E,T exist so that ArrayList<E> conforms to int[]
   where E,T are type-variables:
     E extends Object declared in class ArrayList
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpwmm09ufw/Main.java:20: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmpc_h59xt8/Main.java:20: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.derivative(new ArrayList<>(Arrays.asList(3, 2, 1))).equals(Arrays.asList(2, 2)),
                                           ^
     reason: no instance(s) of type variable(s) E,T exist so that ArrayList<E> conforms to int[]
   where E,T are type-variables:
     E extends Object declared in class ArrayList
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpwmm09ufw/Main.java:21: error: incompatible types: cannot infer type arguments for ArrayList<>
+/tmp/tmpc_h59xt8/Main.java:21: error: incompatible types: cannot infer type arguments for ArrayList<>
                 s.derivative(new ArrayList<>(Arrays.asList(3, 2, 1, 0, 4))).equals(Arrays.asList(2, 2, 0, 16)),
                                           ^
     reason: no instance(s) of type variable(s) E,T exist so that ArrayList<E> conforms to int[]
   where E,T are type-variables:
     E extends Object declared in class ArrayList
     T extends Object declared in method <T>asList(T...)
-/tmp/tmpwmm09ufw/Main.java:22: error: incompatible types: no instance(s) of type variable(s) E exist so that List<E> conforms to int[]
+/tmp/tmpc_h59xt8/Main.java:22: error: incompatible types: no instance(s) of type variable(s) E exist so that List<E> conforms to int[]
                 s.derivative(List.of(1)).equals(List.of())
                  ^
   where E is a type-variable:
