@@ -202,8 +202,6 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 f"Translate the following Python function to Java:\n\n"
                 f"{entry['prompt']}\n"
                 f"{entry['canonical_solution']}\n"
-                f"Use the following imports:\n"
-                f"{declaration}\n"
                 "Provide only the Java method implementation (the body of the method).\n"
                 "### Response:\n"
             )
@@ -216,7 +214,6 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 f"Python code:\n"
                 f"{entry['prompt']}\n"
                 f"{entry['canonical_solution']}\n\n"
-                
                 f"Important conversions:\n"
                 f"- list → ArrayList<Type>: use .get(i), .add(x), .size()\n"
                 f"- dict → HashMap<K,V>: use .get(k), .put(k,v), .containsKey(k)\n"
@@ -227,8 +224,9 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 f"- zip(a, b) → iterate with index: for(int i=0; i<a.size(); i++)\n"
                 f"- enumerate() → use for loop with index variable\n"
                 f"- ''.join(list) → String.join(\"\", list) or StringBuilder\n\n"
-                
-                "Provide only the Java method implementation (the body of the method) and do not include imports.\n"
+                f"Expected declaration and method signature in Java:\n"
+                f"{declaration}\n\n"
+                "Provide only the Java method implementation (the body of the method).\n"
                 "### Response:\n"
             )
 
