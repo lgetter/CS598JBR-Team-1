@@ -1,6 +1,10 @@
 import jsonlines
 import sys
 import torch
+import subprocess
+import tempfile
+import os
+import re
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 
 #####################################################
@@ -11,39 +15,333 @@ def save_file(content, file_path):
     with open(file_path, 'w') as file:
         file.write(content)
 
+def extract_java_code(response):
+    """
+    Extract Java code from the model response.
+    The response typically contains code in ```java ... ``` blocks.
+    """
+    # Remove common explanatory prefixes
+    response = re.sub(r'^.*?(?:Here is|Here\'s).*?(?:Java|translation|version|code|implementation|method).*?:?\s*\n', '', response, flags=re.IGNORECASE)
+
+    # Try to find code between ```java and ``` (closed blocks)
+    pattern = r'```java\s*(.*?)\s*```'
+    matches = re.findall(pattern, response, re.DOTALL)
+
+    if matches:
+        # Return the first code block found
+        return matches[0].strip()
+
+    # Try to find code starting with ```java but not closed (truncated response)
+    pattern_open = r'```java\s*(.*?)$'
+    matches = re.findall(pattern_open, response, re.DOTALL)
+
+    if matches:
+        # Return the code even if block isn't closed
+        return matches[0].strip()
+
+    # If no code blocks found, try to extract anything that looks like a method
+    # Look for public/private method declarations
+    method_pattern = r'((?:public|private|protected|static|\s)+[\w<>\[\]]+\s+\w+\s*\([^\)]*\)\s*\{[\s\S]*?\n\})'
+    matches = re.findall(method_pattern, response, re.MULTILINE)
+
+    if matches:
+        return '\n'.join(matches)
+
+    # Last resort: return the response as-is
+    return response.strip()
+
+def load_java_dataset(seed):
+    """
+    Load the Java dataset to get the test code and method signatures.
+    """
+    java_dataset_file = f"selected_humanevalx_java_{seed}.jsonl"
+    java_dataset = {}
+
+    try:
+        with jsonlines.open(java_dataset_file) as reader:
+            for line in reader:
+                java_dataset[line['task_id']] = line
+    except FileNotFoundError:
+        print(f"Warning: Java dataset file {java_dataset_file} not found!")
+        return {}
+
+    return java_dataset
+
+def create_java_test_file(java_entry, translated_code):
+    """
+    Create a complete Java file with the translated code and test.
+    Handles cases where the model returns:
+    1. Just method body
+    2. Complete method(s)
+    3. Complete class with imports and multiple methods
+    """
+    # Get the declaration (imports + class + method signature)
+    declaration = java_entry['declaration']
+
+    # Step 1: Remove any lines that contain import statements
+    lines = translated_code.split('\n')
+    filtered_lines = []
+    for line in lines:
+        stripped = line.strip()
+        # Skip lines that start with 'import' (case-insensitive)
+        if not (stripped.startswith('import ') or
+                stripped.startswith('import\t') or
+                re.match(r'^\s*import\s+', line, re.IGNORECASE)):
+            filtered_lines.append(line)
+    code_without_imports = '\n'.join(filtered_lines)
+
+    # Step 2: Check if the code contains a class declaration
+    # If so, extract everything inside the class body
+    class_pattern = r'class\s+\w+\s*\{(.*)\}\s*$'
+    class_match = re.search(class_pattern, code_without_imports, re.DOTALL)
+
+    if class_match:
+        # Extract the content inside the class (all methods)
+        class_body = class_match.group(1).strip()
+    else:
+        # No class declaration found, use the code as-is
+        class_body = code_without_imports.strip()
+
+    # Step 3: Extract the method signature from declaration to identify the main method
+    # The declaration ends with the method signature like "public ReturnType methodName(params) {"
+    # We need to find where this method ends in the class_body and extract everything after it
+
+    # Try to find if the class_body starts with a method signature
+    # If it does, we have the complete method(s) and should use them directly
+    # If not, we need to extract just the body
+
+    # Check if class_body starts with a method declaration (public/private/protected/static)
+    if re.match(r'^\s*(public|private|protected|static)', class_body, re.MULTILINE):
+        # The code contains complete method(s), use them directly
+        methods_content = class_body
+    else:
+        # The code is just method body content, wrap it properly
+        # Remove any leading/trailing braces
+        methods_content = class_body.strip()
+        if methods_content.startswith('{'):
+            methods_content = methods_content[1:].strip()
+        if methods_content.endswith('}'):
+            methods_content = methods_content[:-1].strip()
+
+    # Step 4: Build the complete Java file
+    # Declaration already includes: imports + "class Solution {" + method signature + "{"
+    # We need to add the method body/bodies and close the class
+
+    # Check if methods_content is just a method body or complete methods
+    if re.match(r'^\s*(public|private|protected|static)', methods_content, re.MULTILINE):
+        # Complete method(s) - don't add declaration's method signature
+        # Extract from declaration only imports + class declaration (without method signature)
+        decl_lines = declaration.split('\n')
+        imports_and_class = []
+        for line in decl_lines:
+            imports_and_class.append(line)
+            # Stop before the method signature (when we see "public" after "class Solution")
+            if 'class Solution' in line or 'class solution' in line.lower():
+                # Add the opening brace for the class
+                if '{' not in line:
+                    imports_and_class.append('{')
+                break
+
+        # Combine: imports + class { + methods + }
+        java_code = '\n'.join(imports_and_class) + '\n' + methods_content + '\n}\n'
+    else:
+        # Just method body - use declaration as-is and add body
+        java_code = declaration + '\n' + methods_content + '\n}\n}\n'
+
+    # Add the test code
+    test_code = java_entry['test']
+    complete_code = java_code + '\n' + test_code
+
+    print(f"Complete Java code for {java_entry['task_id']}:\n{complete_code}\n")
+    return complete_code
+
+def run_java_test(java_code, task_id):
+    """
+    Compile and run the Java code to test if it's correct.
+    Returns True if tests pass, False otherwise.
+    """
+    # Create a temporary directory for Java files
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Save the Java code to a file
+        # The test code typically has a Main class
+        java_file = os.path.join(temp_dir, "Main.java")
+
+        try:
+            with open(java_file, 'w') as f:
+                f.write(java_code)
+
+            # Compile the Java file
+            compile_result = subprocess.run(
+                ['javac', java_file],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if compile_result.returncode != 0:
+                print(f"Compilation failed for {task_id}:")
+                print(compile_result.stderr)
+                return False
+
+            # Run the Java program
+            run_result = subprocess.run(
+                ['java', '-cp', temp_dir, 'Main'],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if run_result.returncode != 0:
+                print(f"Execution failed for {task_id}:")
+                print(run_result.stderr)
+                return False
+
+            # If we get here, tests passed!
+            return True
+
+        except subprocess.TimeoutExpired:
+            print(f"Timeout for {task_id}")
+            return False
+        except Exception as e:
+            print(f"Error testing {task_id}: {e}")
+            return False
+
 def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct", vanilla = True):
     print(f"Working with {model_name} prompt type {vanilla}...")
-    
-    # TODO: download the model
-    # TODO: load the model with quantization
-    
-    results = []
-    for entry in dataset:
-        # TODO: create prompt for the model
-        # Tip : Use can use any data from the dataset to create 
-        #       the prompt including prompt, canonical_solution, test, etc.
-        prompt = ""
-        
-        # TODO: prompt the model and get the response
-        response = ""
 
-        # TODO: process the response and save it to results
+    # Download the model
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+
+    # Load the model with quantization
+    quant_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",
+    )
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        trust_remote_code=True,
+        device_map="auto",
+        quantization_config=quant_config,
+    )
+
+    # Load the Java dataset for testing
+    # Extract seed from the first entry's file name pattern
+    # The Python dataset should have been generated with the seed in the filename
+    seed = "237879371724955854448207014936885343769"  # Your team's seed
+    java_dataset = load_java_dataset(seed)
+
+    results = []
+    i = 1
+    for entry in dataset:
+        print(f"\n({i}/20) Processing Task_ID {entry['task_id']}...")
+        i += 1
+        declaration = java_dataset.get(entry['task_id'])['declaration']
+        # Create prompt for the model
+        # The task is to translate Python code to Java
+        if vanilla:
+            # Vanilla prompt - simple instruction-based approach
+            prompt = (
+                "You are an AI programming assistant, utilizing the DeepSeek Coder model, developed by DeepSeek Company, "
+                "and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, "
+                "and other non-computer science questions, you will refuse to answer.\n"
+                "### Instruction:\n"
+                f"Translate the following Python function to Java:\n\n"
+                f"{entry['prompt']}\n"
+                f"{entry['canonical_solution']}\n"
+                "Provide only the Java method implementation (the body of the method).\n"
+                "### Response:\n"
+            )
+        else:
+            # Crafted prompt - enhanced with type hints while keeping DeepSeek format
+            prompt = (
+                f"You are an expert programmer in both Python and Java languages. \n"
+                "### Instruction:\n"
+                f"Translate the following Python function to Java.\n\n"
+                f"Python code:\n"
+                f"{entry['prompt']}\n"
+                f"{entry['canonical_solution']}\n\n"
+                f"Important conversions:\n"
+                f"- list → ArrayList<Type>: use .get(i), .add(x), .size()\n"
+                f"- dict → HashMap<K,V>: use .get(k), .put(k,v), .containsKey(k)\n"
+                f"- str[i:j] → str.substring(i, j)\n"
+                f"- str[::-1] → new StringBuilder(str).reverse().toString()\n"
+                f"- len() → .length() for strings, .size() for collections\n"
+                f"- List comprehensions → use loops or streams\n"
+                f"- zip(a, b) → iterate with index: for(int i=0; i<a.size(); i++)\n"
+                f"- enumerate() → use for loop with index variable\n"
+                f"- ''.join(list) → String.join(\"\", list) or StringBuilder\n\n"
+                f"Expected declaration and method signature in Java:\n"
+                f"{declaration}\n\n"
+                "Provide only the Java method implementation (the body of the method).\n"
+                "### Response:\n"
+            )
+
+        #print(f"Prompt:\n{prompt}\n")
+
+        # Prompt the model and get the response
+        inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=1500,
+            do_sample=False,
+            pad_token_id=tokenizer.eos_token_id,
+        )
+
+        # Decode only the newly generated tokens to avoid repeating the prompt
+        input_length = inputs.input_ids.shape[1]
+        new_tokens = outputs[0][input_length:]
+        response = tokenizer.decode(new_tokens, skip_special_tokens=True)
+
+        #print(f"Response:\n{response}\n")
+
+        # Process the response - ACTUALLY TEST THE CODE
         verdict = False
 
-        print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nis_expected:\n{verdict}")
+        # Get the corresponding Java entry for testing
+        java_entry = java_dataset.get(entry['task_id'])
+
+        if java_entry:
+            # Extract the Java code from the response
+            java_code = extract_java_code(response)
+
+            try:
+                # Create a complete Java test file
+                complete_java_file = create_java_test_file(java_entry, java_code)
+
+                # Run the Java tests
+                verdict = run_java_test(complete_java_file, entry['task_id'])
+
+                if verdict:
+                    print(f"✓ Tests PASSED for {entry['task_id']}")
+                else:
+                    print(f"✗ Tests FAILED for {entry['task_id']}")
+
+            except Exception as e:
+                print(f"Error processing {entry['task_id']}: {e}")
+                verdict = False
+        else:
+            print(f"Warning: No Java test found for {entry['task_id']}")
+            # Fallback to basic check
+            verdict = False
+
+        print(f"is_correct: {verdict}")
+        print("========================================")
+
         results.append({
             "task_id": entry["task_id"],
             "prompt": prompt,
             "response": response,
             "is_correct": verdict
         })
-        
+
     return results
 
 def read_jsonl(file_path):
     dataset = []
     with jsonlines.open(file_path) as reader:
-        for line in reader: 
+        for line in reader:
             dataset.append(line)
     return dataset
 
@@ -63,7 +361,7 @@ if __name__ == "__main__":
     - <model>: Specify the model to use. Options are "deepseek-ai/deepseek-coder-6.7b-base" or "deepseek-ai/deepseek-coder-6.7b-instruct".
     - <output_file>: A `.jsonl` file where the results will be saved.
     - <if_vanilla>: Set to 'True' or 'False' to enable vanilla prompt
-    
+
     Outputs:
     - You can check <output_file> for detailed information.
     """
@@ -72,15 +370,15 @@ if __name__ == "__main__":
     model = args[1]
     output_file = args[2]
     if_vanilla = args[3] # True or False
-    
+
     if not input_dataset.endswith(".jsonl"):
         raise ValueError(f"{input_dataset} should be a `.jsonl` file!")
-    
+
     if not output_file.endswith(".jsonl"):
         raise ValueError(f"{output_file} should be a `.jsonl` file!")
-    
+
     vanilla = True if if_vanilla == "True" else False
-    
+
     dataset = read_jsonl(input_dataset)
     results = prompt_model(dataset, model, vanilla)
     write_jsonl(results, output_file)
