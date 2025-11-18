@@ -48,19 +48,19 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 You are an expert Python programmer. Analyze the given Python function and determine if the function is buggy or correct.
 
                 ### Instructions:
-                Determine if the function is buggy or correct.
+                Determine if the Python Function works as described by the Function Description. 
+                Write out your reasoning step by step, and then provide your final verdict enclosed between <start> and <end> tags.
 
-                ### Function description:
+                ### Function Description:
                 {entry['prompt']}
 
-                ### Python function:
+                ### Python Function:
                 {entry['buggy_solution']}
 
                 Important:
-                1. If the code is buggy, give an explainaion of why it is buggy followed by <start>Buggy<end>.
-                2. If the code is correct, give an explainaion of why it is correct followed by <start>Correct<end>.
+                1. If the code is buggy respond with <start>Buggy<end>.
+                2. If the code is correct respond with <start>Correct<end>.
                 3. Enclose your final prediction between <start> and <end> tags. For example: <start>Buggy<end> or <start>Correct<end>.
-                4. The expected output form is strictly the reasoning followed by the prediction enclosed within <start> and <end> tags.
 
                 ### Response:
                 """)
