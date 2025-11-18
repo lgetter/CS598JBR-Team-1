@@ -188,7 +188,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
     for entry in dataset:
         print(f"\n({i}/20) Processing Task_ID {entry['task_id']}...")
         i += 1
-
+        declaration = java_dataset.get(entry['task_id'])['declaration']
         # Create prompt for the model
         # The task is to translate Python code to Java
         if vanilla:
@@ -201,6 +201,8 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 f"Translate the following Python function to Java:\n\n"
                 f"{entry['prompt']}\n"
                 f"{entry['canonical_solution']}\n"
+                f"Use the following imports:\n"
+                f"{declaration}\n"
                 "Provide only the Java method implementation (the body of the method).\n"
                 "### Response:\n"
             )
