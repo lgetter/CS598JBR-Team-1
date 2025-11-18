@@ -104,6 +104,7 @@ def create_java_test_file(java_entry, translated_code):
 
     complete_code = java_code + "\n" + test_code
 
+    print(f"Complete Java code for {java_entry['task_id']}:\n{complete_code}\n")
     return complete_code
 
 def run_java_test(java_code, task_id):
@@ -231,7 +232,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
                 "### Response:\n"
             )
 
-        print(f"Prompt:\n{prompt}\n")
+        #print(f"Prompt:\n{prompt}\n")
 
         # Prompt the model and get the response
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
@@ -247,7 +248,7 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         new_tokens = outputs[0][input_length:]
         response = tokenizer.decode(new_tokens, skip_special_tokens=True)
 
-        print(f"Response:\n{response}\n")
+        #print(f"Response:\n{response}\n")
 
         # Process the response - ACTUALLY TEST THE CODE
         verdict = False
