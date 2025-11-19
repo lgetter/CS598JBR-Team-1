@@ -37,30 +37,41 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         # Tip : Use can use any data from the dataset to create 
         #       the prompt including prompt, canonical_solution, test, etc.
         if vanilla:
-            prompt = "You are an AI programming assistant. You are an AI programming assistant utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer." \
-                "### Instruction:\n" \
-                f"\n{entry['buggy_solution']}" \
-                "Is the above code buggy or correct? Please explain your step by step reasoning. The prediction should be enclosed within <start> and <end> tags. For example: <start>Buggy<end> or <start>Correct<end>" \
-                "### Response:\n"
+            prompt = f"""
+            You are an AI programming assistant. You are an AI programming assistant utilizing the DeepSeek Coder model, developed by DeepSeek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer.
+            
+            ### Instruction:
+            {entry['declaration']}{entry['buggy_solution']}
+            "Is the above code buggy or correct? Please explain your step by step reasoning. The prediction should be enclosed within <start> and <end> tags. For example: <start>Buggy<end> or <start>Correct<end>" \
+            ### Response:
+            """
         else:
             prompt = (
                 f"""
-                You are an expert Python programmer. Analyze the given Python function and determine if the function is buggy or correct.
+                You are an expert Python programmer. Your job is to analyze whether the implementation below is BUGGY or CORRECT.
 
+                Follow this exact reasoning process:
+                1. Read the **specification** (docstring + example tests).
+                2. Determine the intended behavior from the examples.
+                3. Examine the provided **implementation**.
+                4. Identify if it matches the intended behavior.
+                5. At the final line, output ONLY:
+                <start>Buggy<end>
+                or 
+                <start>Correct<end>
+                
                 ### Instructions:
                 Determine if the Python Function works as described by the Function Description. 
                 Write out your reasoning step by step, and then provide your final verdict enclosed between <start> and <end> tags.
 
-                ### Function Description:
+                ### Specification:
                 {entry['prompt']}
+                
+                ### Example Tests
+                {entry['example_test']}
 
-                ### Python Function:
-                {entry['buggy_solution']}
-
-                Important:
-                1. If the code is buggy respond with <start>Buggy<end>.
-                2. If the code is correct respond with <start>Correct<end>.
-                3. Enclose your final prediction between <start> and <end> tags. For example: <start>Buggy<end> or <start>Correct<end>.
+                ### Implementation Under Review
+                {entry['declaration']}{entry['buggy_solution']}
 
                 ### Response:
                 """)
@@ -80,21 +91,14 @@ def prompt_model(dataset, model_name = "deepseek-ai/deepseek-coder-6.7b-instruct
         print(f"Processed response for Task_ID {entry['task_id']}:\n{response}")
         print("========================================\n")
 
-        parsed_response = response.split("<start>")[-1].split("<end>")[0].strip()
+        parsed = response.split("<start>")[-1].split("<end>")[0].strip().lower()
 
         # Process the response and save it to results
-        verdict = False
-        if "Buggy" in parsed_response or "buggy" in parsed_response:
-            verdict = True
+        verdict = (parsed == "buggy")
 
-        print(
-            f"Expected output: Buggy\n"
-            # f"Actual output: {response}\n"
-            f"Parsed output: {parsed_response}\n"
-            f"Is correct: {verdict}\n"
-        )
+        print(f"Expected: Buggy\nParsed: {parsed}\nIs correct: {verdict}\n")
 
-        print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nis_correct:\n{verdict}")
+        #print(f"Task_ID {entry['task_id']}:\nprompt:\n{prompt}\nresponse:\n{response}\nis_correct:\n{verdict}")
         results.append({
             "task_id": entry["task_id"],
             "prompt": prompt,
